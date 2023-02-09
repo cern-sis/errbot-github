@@ -1,0 +1,10 @@
+[Core]
+name = GithubZulip
+module = githubzulip
+
+[Documentation]
+description = Plugin to recieve webhooks from Github and route it to Zulip
+
+[Python]
+version = 3
+
