@@ -1,4 +1,4 @@
-from errbot import BotPlugin, arg_botcmd, botcmd, webhook
+from errbot import BotPlugin, webhook
 
 
 class Githubzulip(BotPlugin):
@@ -67,7 +67,7 @@ class Githubzulip(BotPlugin):
         """
         pass
 
-    @webhook('/github_issues', form_param = 'payload')
+    @webhook('/github/issues', form_param = 'payload')
     def github_issues(self, payload):
             for room in self.rooms():
                 self.log.debug("%s room\n", room)
@@ -76,7 +76,7 @@ class Githubzulip(BotPlugin):
                     '{0} {1} issue#{2} {3} {4}'.format(payload['issue']['user']['login'], payload['action'], payload['issue']['number'], payload['issue']['title'], payload['issue']['html_url']),
                 )
 
-    @webhook('/github_pr', form_param = 'payload')
+    @webhook('/github/pr', form_param = 'payload')
     def github_pr(self, payload):
             for room in self.rooms():
                 self.send(
