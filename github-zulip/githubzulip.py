@@ -66,21 +66,62 @@ class Githubzulip(BotPlugin):
         You should delete it if you're not using it to override any default behaviour
         """
         pass
+    def get_user(self, gh):
+        gh_u = "non"
+        # Load the Zulip API configuration from the .zuliprc file
+        client = zulip.Client(site="https://cern-rcs-sis.zulipchat.com",
+                              email=os.environ['BOT_ZULIP_EMAIL'],
+                              api_key=os.environ['BOT_ZULIP_KEY'])
 
-    @webhook('/github/issues', form_param = 'payload')
-    def github_issues(self, payload):
-            for room in self.rooms():
-                self.log.debug("%s room\n", room)
-                self.send( 
-                    self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=room, topic=payload['repository']['full_name'])),
-                    '{0} {1} issue#{2} {3} {4}'.format(payload['issue']['user']['login'], payload['action'], payload['issue']['number'], payload['issue']['title'], payload['issue']['html_url']),
-                )
+        # Get all users in the realm
+        result = client.get_members()
+        # You may pass the `client_gravatar` query parameter as follows:
+        result = client.get_members({"client_gravatar": False})
+        # You may pass the `include_custom_profile_fields` query parameter as follows:
+        result = client.get_members({"include_custom_profile_fields": True})
 
-    @webhook('/github/pr', form_param = 'payload')
-    def github_pr(self, payload):
-            for room in self.rooms():
-                self.send(
-                    self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=room, topic=payload['repository']['full_name'])),
-                    '{0} {1} Pull Request#{2} {3} {4}'.format(payload['pull_request']['user']['login'], payload['action'], payload['pull_request']['number'], payload['pull_request']['title'], payload['pull_request']['html_url']),
-                )
+        if result["result"] == "success":
+            members = result["members"]
 
+            for member in members:
+                if "profile_data" in member:
+                    if "3959" in member["profile_data"]:
+                        if member["profile_data"]["3959"]["value"] == gh:
+                            gh_u = member["full_name"]
+        return gh_u
+
+    @webhook('/github', raw=True)
+    def github_issues(self, request):
+            event_header = request.headers.get('X-Github-Event')
+            payload = request.form.get('payload')
+            payload_json = json.loads(payload)
+            event = self.get_zulip_event_name(event_header, payload_json)
+            body_fn = self.EVENT_FUNCTION_MAPPER[event]
+            body =  body_fn(self, payload_json)
+
+    def get_zulip_event_name(self, event_header, payload):
+        if event_header in list(self.EVENT_FUNCTION_MAPPER.keys()):
+            return event_header
+
+    def get_issue_body(self, payload):
+        gh_uid = payload["issue"]["user"]["login"]
+        user = self.get_user(gh_uid)
+        for room in self.rooms():
+            self.send(
+                self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=room, topic=payload["repository"]["full_name"])),
+                '@**{0}** {1} issue#{2} {3} {4}'.format(user, payload["action"], payload["issue"]["number"], payload["issue"]["title"], payload["issue"]["html_url"]),
+            )
+
+    def get_pullrequest_body(self, payload):
+        gh_uid = payload["pull_request"]["user"]["login"]
+        user = self.get_user(gh_uid)
+        for room in self.rooms():
+            self.send(
+                self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=room, topic=payload["repository"]["full_name"])),
+                '@**{0}** {1} pull request#{2} {3} {4}'.format(user, payload["action"], payload["pull_request"]["number"], payload["pull_request"]["title"], payload["pull_request"]["html_url"]),
+            )
+
+    EVENT_FUNCTION_MAPPER = {
+        "issues": get_issue_body,
+        "pull_request": get_pullrequest_body,
+    }
