@@ -1,4 +1,7 @@
 from errbot import BotPlugin, webhook
+import zulip
+import json
+import os
 
 
 class Githubzulip(BotPlugin):
