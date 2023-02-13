@@ -73,7 +73,7 @@ class Githubzulip(BotPlugin):
         gh_u = "non"
         # Load the Zulip API configuration from the .zuliprc file
         client = zulip.Client(site="https://cern-rcs-sis.zulipchat.com",
-                              email=os.environ['BOT_ZULIP_EMAIL'],
+                              email="errbot-bot@cern-rcs-sis.zulipchat.com",
                               api_key=os.environ['BOT_ZULIP_KEY'])
 
         # Get all users in the realm
