@@ -94,25 +94,25 @@ class Githubzulip(BotPlugin):
         match payload["repository"]["full_name"].split("/"):
             case ["inspirehep", repo]:
                 stream = "inspire"
-                topic = repo+"/"+event+"/"+str(payload[event]["number"])
+                topic = repo+" / "+event+" / "+str(payload[event]["number"])
             case ["hepdata", repo]:
                 stream = "hepdata"
-                topic = repo+"/"+event+"/"+str(payload[event]["number"])
+                topic = repo+" / "+event+" / "+str(payload[event]["number"])
             case ["scoap3", repo]:
                 stream = "scoap3"
-                topic = repo+"/"+event+"/"+str(payload[event]["number"])
+                topic = repo+" / "+event+" / "+str(payload[event]["number"])
             case ["cernanalysispreservation", repo]:
                 stream = "cap"
-                topic = repo+"/"+event+"/"+str(payload[event]["number"])
+                topic = repo+" / "+event+" / "+str(payload[event]["number"])
             case ["cern-sis", "digitization"]:
                 stream = "digitization"
-                topic = stream+"/"+event+"/"+str(payload[event]["number"])
+                topic = stream+" / "+event+" / "+str(payload[event]["number"])
             case ["cern-sis", "cern-academic-training"]:
                 stream = "cat"
-                topic = stream+"/"+event+"/"+str(payload[event]["number"])
+                topic = stream+" / "+event+" / "+str(payload[event]["number"])
             case ["cern-sis", "kubernetes"]:
                 stream = "infrastructure"
-                topic = "kubernetes/"+event+"/"+str(payload[event]["number"])
+                topic = "kubernetes / "+event+" / "+str(payload[event]["number"])
 
         return self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}")
 
@@ -135,7 +135,7 @@ class Githubzulip(BotPlugin):
 
     def get_issue_body(self, payload):
         gh_uid = payload["issue"]["user"]["login"]
-        event = "issue"
+        event = "issues"
         user = self.get_user(gh_uid)
         self.send(
             self.room(payload, event),
@@ -145,7 +145,7 @@ class Githubzulip(BotPlugin):
     def get_pullrequest_body(self, payload):
         gh_uid = payload["pull_request"]["user"]["login"]
         user = self.get_user(gh_uid)
-        event = "pull_request"
+        event = "PR"
         self.send(
             self.room(payload, event),         
             '@**{0}** {1} pull request#{2} {3} {4}'.format(user, payload["action"], payload["pull_request"]["number"], payload["pull_request"]["title"], payload["pull_request"]["html_url"]),
