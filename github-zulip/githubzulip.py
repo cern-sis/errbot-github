@@ -128,13 +128,13 @@ class Githubzulip(BotPlugin):
             case {"action": _, "issue": _}:
                 # send the payload to github bot?
                 self.log.info("issue event")
-                stream, topic = self.room(payload, "issue")
+                stream, topic = self.room(payload_json, "issue")
                 gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
                 r = requests.post(gh_api, json=request)
                 self.log.info(r.json())
             case {"action": _, "pull_request": _}:
                 self.log.info("Pull request event")
-                stream, topic = self.room(payload, "pull_request")
+                stream, topic = self.room(payload_json, "pull_request")
                 gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
                 r = requests.post(gh_api, json=request)
                 self.log.info(r.json())
