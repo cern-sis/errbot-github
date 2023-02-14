@@ -135,7 +135,7 @@ class Githubzulip(BotPlugin):
 
     def get_issue_body(self, payload):
         gh_uid = payload["issue"]["user"]["login"]
-        event = "issues"
+        event = "issue"
         user = self.get_user(gh_uid)
         self.send(
             self.room(payload, event),
@@ -145,7 +145,7 @@ class Githubzulip(BotPlugin):
     def get_pullrequest_body(self, payload):
         gh_uid = payload["pull_request"]["user"]["login"]
         user = self.get_user(gh_uid)
-        event = "PR"
+        event = "pull_request"
         self.send(
             self.room(payload, event),         
             '@**{0}** {1} pull request#{2} {3} {4}'.format(user, payload["action"], payload["pull_request"]["number"], payload["pull_request"]["title"], payload["pull_request"]["html_url"]),
