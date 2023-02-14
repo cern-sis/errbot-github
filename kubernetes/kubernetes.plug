@@ -1,0 +1,9 @@
+[Core]
+name = Kubernetes
+module = kubernetes
+
+[Documentation]
+description = Plugin to list resources on kubernetes
+
+[Python]
+version = 3
