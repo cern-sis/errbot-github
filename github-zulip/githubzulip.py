@@ -120,6 +120,7 @@ class Githubzulip(BotPlugin):
 
     @webhook('/github_case', raw=True)
     def route(self, request):
+        self.log.info("[debug]")
         payload = request.form.get('payload')
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload:
