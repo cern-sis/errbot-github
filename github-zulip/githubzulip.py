@@ -135,7 +135,7 @@ class Githubzulip(BotPlugin):
                     'stream': stream,
                     'topic': topic, 
                 }
-                res = urlencode(params, quota_via=quote_plus)
+                res = urlencode(params, quote_via=quote_plus)
                 gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?"+res
                 self.log.info(gh_api)
                 r = requests.post(gh_api, json=payload_json)
