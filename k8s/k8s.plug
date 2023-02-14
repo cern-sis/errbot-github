@@ -1,5 +1,5 @@
 [Core]
-name = Kubernetes
+name = K8s
 module = k8s
 
 [Documentation]
