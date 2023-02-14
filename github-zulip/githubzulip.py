@@ -2,6 +2,7 @@ from errbot import BotPlugin, webhook
 import zulip
 import json
 import os
+import requests
 
 
 class Githubzulip(BotPlugin):
@@ -114,11 +115,30 @@ class Githubzulip(BotPlugin):
                 stream = "infrastructure"
                 topic = "kubernetes / "+event+" / "+str(payload[event]["number"])
 
-        return self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}")
+        return stream, topic
+        #self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}")
 
+    @webhook('/github_case', raw=True)
+    def route(self, request):
+        payload = request.form.get('payload')
+        BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
+        match payload:
+            case {"issue": _}:
+                # send the payload to github bot?
+                self.log.info("issue event")
+                stream, topic = self.room(payload, "issue")
+                gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
+                r = requests.post(gh_api, json=request)
+                self.log.info(r.json())
+            case {"pull_request": _}:
+                self.log.info("Pull request event")
+                stream, topic = self.room(payload, "pull_request")
+                gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
+                r = requests.post(gh_api, json=request)
+                self.log.info(r.json())
 
     @webhook('/github', raw=True)
-    def github_issues(self, request):
+    def github(self, request):
             if event_header := request.headers.get('X-Github-Event'):
                 pass
             payload = request.form.get('payload')
@@ -137,8 +157,9 @@ class Githubzulip(BotPlugin):
         gh_uid = payload["issue"]["user"]["login"]
         event = "issue"
         user = self.get_user(gh_uid)
+        stream, topic = self.room(payload, event)
         self.send(
-            self.room(payload, event),
+            self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}"),
             '@**{0}** {1} issue#{2} {3} {4}'.format(user, payload["action"], payload["issue"]["number"], payload["issue"]["title"], payload["issue"]["html_url"]),
         )
 
