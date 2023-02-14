@@ -87,12 +87,11 @@ class Githubzulip(BotPlugin):
                             gh_u = member["full_name"]
         return gh_u
 
-    def room(self, event_type, payload):
-        event = payload[event_type]
+    def room(self, payload):
         stream = "infrastructure"
         topic = "errbot"
 
-        match event["repository"]["full_name"].split("/"):
+        match payload["repository"]["full_name"].split("/"):
             case ["inspirehep", repo]:
                 stream = "inspire"
                 topic = repo
@@ -126,7 +125,7 @@ class Githubzulip(BotPlugin):
             event = self.get_zulip_event_name(event_header, payload_json)
             
             body_fn = self.EVENT_FUNCTION_MAPPER[event]
-            body_fn(self, payload_json)
+            body_fn(self, payload_json, event)
             return "OK"
 
     def get_zulip_event_name(self, event_header, payload):
@@ -137,7 +136,7 @@ class Githubzulip(BotPlugin):
         gh_uid = payload["issue"]["user"]["login"]
         user = self.get_user(gh_uid)
         self.send(
-            self.room(),
+            self.room(payload),
             #self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=stream, topic=payload["repository"]["full_name"])),
             '@**{0}** {1} issue#{2} {3} {4}'.format(user, payload["action"], payload["issue"]["number"], payload["issue"]["title"], payload["issue"]["html_url"]),
         )
@@ -146,7 +145,7 @@ class Githubzulip(BotPlugin):
         gh_uid = payload["pull_request"]["user"]["login"]
         user = self.get_user(gh_uid)
         self.send(
-            self.room(),         
+            self.room(payload),         
                 #self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=room, topic=payload["repository"]["full_name"])),
             '@**{0}** {1} pull request#{2} {3} {4}'.format(user, payload["action"], payload["pull_request"]["number"], payload["pull_request"]["title"], payload["pull_request"]["html_url"]),
         )
