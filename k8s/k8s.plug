@@ -1,6 +1,6 @@
 [Core]
 name = Kubernetes
-module = kubernetes
+module = k8s
 
 [Documentation]
 description = Plugin to list resources on kubernetes
