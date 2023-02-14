@@ -134,7 +134,6 @@ class Githubzulip(BotPlugin):
             return event_header
 
     def get_issue_body(self, payload):
-        stream = self.get_stream(payload["repository"]["full_name"])
         gh_uid = payload["issue"]["user"]["login"]
         user = self.get_user(gh_uid)
         self.send(
