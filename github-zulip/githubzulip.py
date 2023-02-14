@@ -3,6 +3,7 @@ import zulip
 import json
 import os
 import requests
+from urllib.parse import urlencode, quote_plus
 
 
 class Githubzulip(BotPlugin):
@@ -129,7 +130,14 @@ class Githubzulip(BotPlugin):
                 # send the payload to github bot?
                 self.log.info("issue event")
                 stream, topic = self.room(payload_json, "issue")
-                gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
+                params = {
+                    'api_key': BOT_API_KEY,
+                    'stream': stream,
+                    'topic': topic, 
+                }
+                res = urlencode(params, quota_via=quote_plus)
+                gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?"+res
+                self.log.info(gh_api)
                 r = requests.post(gh_api, json=payload_json)
                 self.log.info(r.json())
             case {"action": _, "pull_request": _}:
