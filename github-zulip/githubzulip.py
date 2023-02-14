@@ -122,16 +122,17 @@ class Githubzulip(BotPlugin):
     def github(self, request):
         self.log.info("[debug]")
         payload = request.form.get('payload')
+        payload_json = json.loads(payload)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
-        match payload:
-            case {"issue": _}:
+        match payload_json:
+            case {"action": _, "issue": _}:
                 # send the payload to github bot?
                 self.log.info("issue event")
                 stream, topic = self.room(payload, "issue")
                 gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
                 r = requests.post(gh_api, json=request)
                 self.log.info(r.json())
-            case {"pull_request": _}:
+            case {"action": _, "pull_request": _}:
                 self.log.info("Pull request event")
                 stream, topic = self.room(payload, "pull_request")
                 gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
