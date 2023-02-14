@@ -118,8 +118,8 @@ class Githubzulip(BotPlugin):
         return stream, topic
         #self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}")
 
-    @webhook('/github_case', raw=True)
-    def route(self, request):
+    @webhook('/github', raw=True)
+    def github(self, request):
         self.log.info("[debug]")
         payload = request.form.get('payload')
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
@@ -138,17 +138,17 @@ class Githubzulip(BotPlugin):
                 r = requests.post(gh_api, json=request)
                 self.log.info(r.json())
 
-    @webhook('/github', raw=True)
-    def github(self, request):
-            if event_header := request.headers.get('X-Github-Event'):
-                pass
-            payload = request.form.get('payload')
-            payload_json = json.loads(payload)
-            event = self.get_zulip_event_name(event_header, payload_json)
+    # @webhook('/github', raw=True)
+    # def github(self, request):
+    #         if event_header := request.headers.get('X-Github-Event'):
+    #             pass
+    #         payload = request.form.get('payload')
+    #         payload_json = json.loads(payload)
+    #         event = self.get_zulip_event_name(event_header, payload_json)
             
-            body_fn = self.EVENT_FUNCTION_MAPPER[event]
-            body_fn(self, payload_json)
-            return "OK"
+    #         body_fn = self.EVENT_FUNCTION_MAPPER[event]
+    #         body_fn(self, payload_json)
+    #         return "OK"
 
     def get_zulip_event_name(self, event_header, payload):
         if event_header in list(self.EVENT_FUNCTION_MAPPER.keys()):
