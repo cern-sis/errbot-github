@@ -1,9 +1,0 @@
-[Core]
-name = K8s
-module = k8s
-
-[Documentation]
-description = Plugin to list resources on kubernetes
-
-[Python]
-version = 3
