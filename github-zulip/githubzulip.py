@@ -8,7 +8,6 @@ class Githubzulip(BotPlugin):
     """
     Plugin to recieve webhooks from Github and route it to Zulip
     """
-
     def activate(self):
         """
         Triggers on plugin activation
@@ -70,17 +69,12 @@ class Githubzulip(BotPlugin):
         """
         pass
     def get_user(self, gh):
-        gh_u = "non"
-        # Load the Zulip API configuration from the .zuliprc file
+        gh_u = ""
         client = zulip.Client(site="https://cern-rcs-sis.zulipchat.com",
                               email="errbot-bot@cern-rcs-sis.zulipchat.com",
                               api_key=os.environ['BOT_ZULIP_KEY'])
-
-        # Get all users in the realm
         result = client.get_members()
-        # You may pass the `client_gravatar` query parameter as follows:
         result = client.get_members({"client_gravatar": False})
-        # You may pass the `include_custom_profile_fields` query parameter as follows:
         result = client.get_members({"include_custom_profile_fields": True})
 
         if result["result"] == "success":
@@ -93,36 +87,70 @@ class Githubzulip(BotPlugin):
                             gh_u = member["full_name"]
         return gh_u
 
+    def room(self, event_type, payload):
+        event = payload[event_type]
+        stream = "infrastructure"
+        topic = "errbot"
+
+        match event["repository"]["full_name"].split("/"):
+            case ["inspirehep", repo]:
+                stream = "inspire"
+                topic = repo
+            case ["hepdata", repo]:
+                stream = "hepdata"
+                topic = repo
+            case ["scoap3", repo]:
+                stream = "scoap3"
+                topic = repo
+            case ["cernanalysispreservation", repo]:
+                stream = "cap"
+                topic = repo
+            case ["cern-sis", "digitization"]:
+                stream = "digitization"
+                topic = stream
+            case ["cern-sis", "cern-academic-training"]:
+                stream = "cat"
+                topic = stream
+            case ["cern-sis", "kubernetes"]:
+                stream = "infrastructure"
+                topic = stream
+
+        return self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}")
+
     @webhook('/github', raw=True)
     def github_issues(self, request):
-            event_header = request.headers.get('X-Github-Event')
+            if event_header := request.headers.get('X-Github-Event'):
+                pass
             payload = request.form.get('payload')
             payload_json = json.loads(payload)
             event = self.get_zulip_event_name(event_header, payload_json)
+            
             body_fn = self.EVENT_FUNCTION_MAPPER[event]
-            body =  body_fn(self, payload_json)
+            body_fn(self, payload_json)
+            return "OK"
 
     def get_zulip_event_name(self, event_header, payload):
         if event_header in list(self.EVENT_FUNCTION_MAPPER.keys()):
             return event_header
 
     def get_issue_body(self, payload):
+        stream = self.get_stream(payload["repository"]["full_name"])
         gh_uid = payload["issue"]["user"]["login"]
         user = self.get_user(gh_uid)
-        for room in self.rooms():
-            self.send(
-                self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=room, topic=payload["repository"]["full_name"])),
-                '@**{0}** {1} issue#{2} {3} {4}'.format(user, payload["action"], payload["issue"]["number"], payload["issue"]["title"], payload["issue"]["html_url"]),
-            )
+        self.send(
+            self.room(),
+            #self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=stream, topic=payload["repository"]["full_name"])),
+            '@**{0}** {1} issue#{2} {3} {4}'.format(user, payload["action"], payload["issue"]["number"], payload["issue"]["title"], payload["issue"]["html_url"]),
+        )
 
     def get_pullrequest_body(self, payload):
         gh_uid = payload["pull_request"]["user"]["login"]
         user = self.get_user(gh_uid)
-        for room in self.rooms():
-            self.send(
-                self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=room, topic=payload["repository"]["full_name"])),
-                '@**{0}** {1} pull request#{2} {3} {4}'.format(user, payload["action"], payload["pull_request"]["number"], payload["pull_request"]["title"], payload["pull_request"]["html_url"]),
-            )
+        self.send(
+            self.room(),         
+                #self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=room, topic=payload["repository"]["full_name"])),
+            '@**{0}** {1} pull request#{2} {3} {4}'.format(user, payload["action"], payload["pull_request"]["number"], payload["pull_request"]["title"], payload["pull_request"]["html_url"]),
+        )
 
     EVENT_FUNCTION_MAPPER = {
         "issues": get_issue_body,
