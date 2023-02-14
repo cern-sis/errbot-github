@@ -87,34 +87,35 @@ class Githubzulip(BotPlugin):
                             gh_u = member["full_name"]
         return gh_u
 
-    def room(self, payload):
+    def room(self, payload, event):
         stream = "infrastructure"
         topic = "errbot"
 
         match payload["repository"]["full_name"].split("/"):
             case ["inspirehep", repo]:
                 stream = "inspire"
-                topic = repo
+                topic = repo+"/"+event+"/"+payload[event]["number"]
             case ["hepdata", repo]:
                 stream = "hepdata"
-                topic = repo
+                topic = repo+"/"+event+"/"+payload[event]["number"]
             case ["scoap3", repo]:
                 stream = "scoap3"
-                topic = repo
+                topic = repo+"/"+event+"/"+payload[event]["number"]
             case ["cernanalysispreservation", repo]:
                 stream = "cap"
-                topic = repo
+                topic = repo+"/"+event+"/"+payload[event]["number"]
             case ["cern-sis", "digitization"]:
                 stream = "digitization"
-                topic = stream
+                topic = stream+"/"+event+"/"+payload[event]["number"]
             case ["cern-sis", "cern-academic-training"]:
                 stream = "cat"
-                topic = stream
+                topic = stream+"/"+event+"/"+payload[event]["number"]
             case ["cern-sis", "kubernetes"]:
                 stream = "infrastructure"
-                topic = stream
+                topic = "kubernetes/"+event+"/"+payload[event]["number"]
 
         return self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}")
+
 
     @webhook('/github', raw=True)
     def github_issues(self, request):
@@ -134,19 +135,19 @@ class Githubzulip(BotPlugin):
 
     def get_issue_body(self, payload):
         gh_uid = payload["issue"]["user"]["login"]
+        event = "issue"
         user = self.get_user(gh_uid)
         self.send(
-            self.room(payload),
-            #self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=stream, topic=payload["repository"]["full_name"])),
+            self.room(payload, event),
             '@**{0}** {1} issue#{2} {3} {4}'.format(user, payload["action"], payload["issue"]["number"], payload["issue"]["title"], payload["issue"]["html_url"]),
         )
 
     def get_pullrequest_body(self, payload):
         gh_uid = payload["pull_request"]["user"]["login"]
         user = self.get_user(gh_uid)
+        event = "pull_request"
         self.send(
-            self.room(payload),         
-                #self.build_identifier("#{{{{{stream}}}}}*{{{{{topic}}}}}".format(stream=room, topic=payload["repository"]["full_name"])),
+            self.room(payload, event),         
             '@**{0}** {1} pull request#{2} {3} {4}'.format(user, payload["action"], payload["pull_request"]["number"], payload["pull_request"]["title"], payload["pull_request"]["html_url"]),
         )
 
