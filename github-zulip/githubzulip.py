@@ -124,7 +124,7 @@ class Githubzulip(BotPlugin):
         self.log.info("[debug]")
         payload = request.form.get('payload')
         payload_json = json.loads(payload)
-        request_json = json.loads(request)
+        #request_json = json.loads(request)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload_json:
             case {"action": _, "issue": _}:
@@ -139,13 +139,13 @@ class Githubzulip(BotPlugin):
                 res = urlencode(params, quote_via=quote_plus)
                 gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+res
                 self.log.info(gh_api)
-                r = requests.post(gh_api, json=request_json)
+                r = requests.post(gh_api, json=request)
                 self.log.info(r.json())
             case {"action": _, "pull_request": _}:
                 self.log.info("Pull request event")
                 stream, topic = self.room(payload_json, "pull_request")
                 gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
-                r = requests.post(gh_api, json=request_json)
+                r = requests.post(gh_api, json=request)
                 self.log.info(r.json())
 
     # @webhook('/github', raw=True)
