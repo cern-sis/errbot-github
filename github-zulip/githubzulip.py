@@ -94,25 +94,25 @@ class Githubzulip(BotPlugin):
         match payload["repository"]["full_name"].split("/"):
             case ["inspirehep", repo]:
                 stream = "inspire"
-                topic = repo+"/"+event+"/"+payload[event]["number"]
+                topic = repo+"/"+event+"/"+str(payload[event]["number"])
             case ["hepdata", repo]:
                 stream = "hepdata"
-                topic = repo+"/"+event+"/"+payload[event]["number"]
+                topic = repo+"/"+event+"/"+str(payload[event]["number"])
             case ["scoap3", repo]:
                 stream = "scoap3"
-                topic = repo+"/"+event+"/"+payload[event]["number"]
+                topic = repo+"/"+event+"/"+str(payload[event]["number"])
             case ["cernanalysispreservation", repo]:
                 stream = "cap"
-                topic = repo+"/"+event+"/"+payload[event]["number"]
+                topic = repo+"/"+event+"/"+str(payload[event]["number"])
             case ["cern-sis", "digitization"]:
                 stream = "digitization"
-                topic = stream+"/"+event+"/"+payload[event]["number"]
+                topic = stream+"/"+event+"/"+str(payload[event]["number"])
             case ["cern-sis", "cern-academic-training"]:
                 stream = "cat"
-                topic = stream+"/"+event+"/"+payload[event]["number"]
+                topic = stream+"/"+event+"/"+str(payload[event]["number"])
             case ["cern-sis", "kubernetes"]:
                 stream = "infrastructure"
-                topic = "kubernetes/"+event+"/"+payload[event]["number"]
+                topic = "kubernetes/"+event+"/"+str(payload[event]["number"])
 
         return self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}")
 
