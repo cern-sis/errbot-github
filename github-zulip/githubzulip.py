@@ -125,7 +125,7 @@ class Githubzulip(BotPlugin):
             event = self.get_zulip_event_name(event_header, payload_json)
             
             body_fn = self.EVENT_FUNCTION_MAPPER[event]
-            body_fn(self, payload_json, event)
+            body_fn(self, payload_json)
             return "OK"
 
     def get_zulip_event_name(self, event_header, payload):
