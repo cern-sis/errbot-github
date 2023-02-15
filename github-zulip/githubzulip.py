@@ -138,10 +138,9 @@ class Githubzulip(BotPlugin):
                 }
                 res = urlencode(params, quote_via=quote_plus)
                 gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+res
-                self.log.info(gh_api)
                 r = requests.post(gh_api, 
                                   headers=headers,
-                                  data=payload)
+                                  data=payload_json)
                 self.log.info(r.text)
             case {"action": _, "pull_request": _}:
                 self.log.info("Pull request event")
