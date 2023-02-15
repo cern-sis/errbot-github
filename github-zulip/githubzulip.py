@@ -123,23 +123,38 @@ class Githubzulip(BotPlugin):
     def github(self, request):
         # headers can be accessed by request.headers
         # data can be accessed by: request.json (application/json)
+        # payload = request.json
+        # BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
+        # match payload:
+        #     case {"action": _, "issue": _}:
+        #         stream, topic = self.room(payload, "issue")
+        #         params = {
+        #             "api_key": BOT_API_KEY,
+        #             "stream": stream,
+        #             "topic": topic
+        #         }
+        #         param_encoded = urlencode(params, quote_via=quote_plus)
+        #         gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+param_encoded
+        #         self.log.info(gh_api)
+        #         response = requests.post(gh_api,
+        #                                  headers=request.headers,
+        #                                  data=payload)
+        #         self.log.info(response.status_code)
         payload = request.json
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload:
-            case {"action": _, "issue": _}:
-                stream, topic = self.room(payload, "issue")
+            case {'action': _, 'issue': _}:
+                stream, topic = self.room(payload, 'issue')
                 params = {
-                    "api_key": BOT_API_KEY,
-                    "stream": stream,
-                    "topic": topic
+                    'api_key': BOT_API_KEY,
+                    'stream': stream,
+                    'topic': topic
                 }
-                param_encoded = urlencode(params, quote_via=quote_plus)
-                gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+param_encoded
-                self.log.info("api: ", gh_api)
-                response = requests.post(gh_api,
+                response = requests.post('https://cern-rcs-sis.zulipchat.com/api/v1/external/github',
                                          headers=request.headers,
+                                         params=params,
                                          json=payload)
-                self.log.info("response: ", response.text)
+                self.log.info(response.status_code)
         # payload = request.form.get('payload')
         # headers = {}
         # for k, v in request.headers:
