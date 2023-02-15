@@ -124,9 +124,6 @@ class Githubzulip(BotPlugin):
         self.log.info(request)
         payload = request.form.get('payload')
         headers = request.headers
-        headers.remove('Content-Type')
-        self.log.info(headers)
-        headers.add_header('Content-Type', 'application/json')
         #headers['Content-Type'] = 'application/json'
         #request_json = json.loads(request)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
@@ -136,14 +133,14 @@ class Githubzulip(BotPlugin):
                 params = {
                     'api_key': BOT_API_KEY,
                     'stream': stream,
-                    'topic': topic, 
+                    'topic': topic,
                 }
                 res = urlencode(params, quote_via=quote_plus)
                 gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+res
                 self.log.info(gh_api)
                 r = requests.post(gh_api, 
                                   headers=headers,
-                                  json=payload)
+                                  data=payload)
                 self.log.info(r)
             case {"action": _, "pull_request": _}:
                 self.log.info("Pull request event")
