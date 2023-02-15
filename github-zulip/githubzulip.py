@@ -135,10 +135,11 @@ class Githubzulip(BotPlugin):
                 }
                 param_encoded = urlencode(params, quote_via=quote_plus)
                 gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+param_encoded
+                self.log.info("api: ", gh_api)
                 response = requests.post(gh_api,
                                          headers=request.headers,
                                          json=payload)
-                self.log.info(response.text)
+                self.log.info("response: ", response.text)
         # payload = request.form.get('payload')
         # headers = {}
         # for k, v in request.headers:
