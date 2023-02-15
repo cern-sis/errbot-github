@@ -121,7 +121,9 @@ class Githubzulip(BotPlugin):
 
     @webhook('/github', raw=True)
     def github(self, request):
-        self.log.info("[debug]")
+        self.log.info(request)
+        requests_json = request.toJSON()
+        self.log.info(requests_json)
         payload = request.form.get('payload')
         payload_json = json.loads(payload)
         #request_json = json.loads(request)
