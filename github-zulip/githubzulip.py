@@ -152,9 +152,9 @@ class Githubzulip(BotPlugin):
                 }
                 self.log.info(stream)
                 self.log.info(topic)
-                response = requests.post('https://cern-rcs-sis.zulipchat.com/api/v1/external/github',
+                gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?api_key="+BOT_API_KEY+"&stream=test"
+                response = requests.post(gh_api,
                                          headers=request.headers,
-                                         params=params,
                                          json=payload)
                 self.log.info(response.status_code)
                 self.log.info(response.text)
