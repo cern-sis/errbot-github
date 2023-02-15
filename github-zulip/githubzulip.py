@@ -121,38 +121,55 @@ class Githubzulip(BotPlugin):
 
     @webhook('/github', raw=True)
     def github(self, request):
-        self.log.info(request)
-        payload = request.form.get('payload')
-        headers = {}
-        for k, v in request.headers:
-            headers[k] = v
-        headers['Content-Type'] = 'application/json'
-        payload_json = json.loads(payload)
-        #headers['Content-Type'] = 'application/json'
-        #request_json = json.loads(request)
+        # headers can be accessed by request.headers
+        # data can be accessed by: request.json (application/json)
+        payload = request.json
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
-        match payload_json:
+        match payload:
             case {"action": _, "issue": _}:
-                stream, topic = self.room(payload_json, "issue")
+                stream, topic = self.room(payload, "issue")
                 params = {
-                    'api_key': BOT_API_KEY,
-                    'stream': stream,
-                    'topic': topic,
+                    "api_key": BOT_API_KEY,
+                    "stream": stream,
+                    "topic": topic
                 }
-                res = urlencode(params, quote_via=quote_plus)
-                gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+res
-                r = requests.post(gh_api, 
-                                  headers=headers,
-                                  json=payload)
-                self.log.info("Payload", payload)
-                self.log.info("headers", headers)
-                self.log.info(r.text)
-            case {"action": _, "pull_request": _}:
-                self.log.info("Pull request event")
-                stream, topic = self.room(payload, "pull_request")
-                gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
-                r = requests.post(gh_api, json=payload)
-                self.log.info(r.json())
+                param_encoded = urlencode(params, quote_via=quote_plus)
+                gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+param_encoded
+                response = requests.post(gh_api,
+                                         headers=request.headers,
+                                         json=payload)
+                self.log.info(response.text)
+        # payload = request.form.get('payload')
+        # headers = {}
+        # for k, v in request.headers:
+        #     headers[k] = v
+        # headers['Content-Type'] = 'application/json'
+        # payload_json = json.loads(payload)
+        # #headers['Content-Type'] = 'application/json'
+        # #request_json = json.loads(request)
+        # BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
+        # match payload_json:
+        #     case {"action": _, "issue": _}:
+        #         stream, topic = self.room(payload_json, "issue")
+        #         params = {
+        #             'api_key': BOT_API_KEY,
+        #             'stream': stream,
+        #             'topic': topic,
+        #         }
+        #         res = urlencode(params, quote_via=quote_plus)
+        #         gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+res
+        #         r = requests.post(gh_api, 
+        #                           headers=headers,
+        #                           json=payload)
+        #         self.log.info("Payload", payload)
+        #         self.log.info("headers", headers)
+        #         self.log.info(r.text)
+        #     case {"action": _, "pull_request": _}:
+        #         self.log.info("Pull request event")
+        #         stream, topic = self.room(payload, "pull_request")
+        #         gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
+        #         r = requests.post(gh_api, json=payload)
+        #         self.log.info(r.json())
 
     # @webhook('/github', raw=True)
     # def github(self, request):
