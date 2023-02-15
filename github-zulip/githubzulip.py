@@ -123,7 +123,8 @@ class Githubzulip(BotPlugin):
     def github(self, request):
         payload = request.form.get('payload')
         payload_json = json.loads(payload)
-        event_header = request.headers.get('X-Github-Event')
+        headers = request.headers
+        self.log.info(headers)
         #request_json = json.loads(request)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload_json:
@@ -139,7 +140,7 @@ class Githubzulip(BotPlugin):
                 gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+res
                 self.log.info(gh_api)
                 r = requests.post(gh_api, 
-                                  headers={"X-Github-Event": event_header},
+                                  headers=headers,
                                   json=payload)
                 self.log.info(r.json())
             case {"action": _, "pull_request": _}:
