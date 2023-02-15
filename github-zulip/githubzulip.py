@@ -130,7 +130,7 @@ class Githubzulip(BotPlugin):
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload_json:
             case {"action": _, "issue": _}:
-                stream, topic = self.room(payload, "issue")
+                stream, topic = self.room(payload_json, "issue")
                 params = {
                     'api_key': BOT_API_KEY,
                     'stream': stream,
