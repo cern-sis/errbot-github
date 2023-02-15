@@ -123,9 +123,11 @@ class Githubzulip(BotPlugin):
     def github(self, request):
         self.log.info(request)
         payload = request.form.get('payload')
-        headers = request.headers.to_dict()
+        headers = request.headers
+        headers.remove('Content-Type')
         self.log.info(headers)
-        headers['Content-Type'] = 'application/json'
+        headers.add_header('Content-Type', 'application/json')
+        #headers['Content-Type'] = 'application/json'
         #request_json = json.loads(request)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload:
