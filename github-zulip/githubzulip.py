@@ -155,6 +155,7 @@ class Githubzulip(BotPlugin):
                                          params=params,
                                          json=payload)
                 self.log.info(response.status_code)
+                self.log.info(response.get_data())
         # payload = request.form.get('payload')
         # headers = {}
         # for k, v in request.headers:
