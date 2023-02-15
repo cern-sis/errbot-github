@@ -124,10 +124,11 @@ class Githubzulip(BotPlugin):
         self.log.info(request)
         payload = request.form.get('payload')
         headers = request.headers
+        payload_json = json.loads(payload)
         #headers['Content-Type'] = 'application/json'
         #request_json = json.loads(request)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
-        match payload:
+        match payload_json:
             case {"action": _, "issue": _}:
                 stream, topic = self.room(payload, "issue")
                 params = {
