@@ -142,7 +142,7 @@ class Githubzulip(BotPlugin):
                 r = requests.post(gh_api, 
                                   headers=headers,
                                   data=payload)
-                self.log.info(r.text())
+                self.log.info(r.text)
             case {"action": _, "pull_request": _}:
                 self.log.info("Pull request event")
                 stream, topic = self.room(payload, "pull_request")
