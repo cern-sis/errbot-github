@@ -124,7 +124,6 @@ class Githubzulip(BotPlugin):
         payload = request.form.get('payload')
         payload_json = json.loads(payload)
         headers = request.headers
-        self.log.info(headers)
         #request_json = json.loads(request)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload_json:
@@ -142,7 +141,7 @@ class Githubzulip(BotPlugin):
                 r = requests.post(gh_api, 
                                   headers=headers,
                                   json=payload)
-                self.log.info(r.json())
+                self.log.info(r)
             case {"action": _, "pull_request": _}:
                 self.log.info("Pull request event")
                 stream, topic = self.room(payload_json, "pull_request")
