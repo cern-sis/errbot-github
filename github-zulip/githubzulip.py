@@ -123,7 +123,7 @@ class Githubzulip(BotPlugin):
     def github(self, request):
         self.log.info(request)
         payload = request.form.get('payload')
-        headers = request.headers
+        headers = request.headers.to_dict()
         self.log.info(headers)
         headers['Content-Type'] = 'application/json'
         #request_json = json.loads(request)
