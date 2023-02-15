@@ -147,8 +147,8 @@ class Githubzulip(BotPlugin):
                 stream, topic = self.room(payload, 'issue')
                 params = {
                     'api_key': BOT_API_KEY,
-                    'stream': stream,
-                    'topic': topic
+                    'stream': "test",
+                    'topic': "test"
                 }
                 self.log.info(stream)
                 self.log.info(topic)
