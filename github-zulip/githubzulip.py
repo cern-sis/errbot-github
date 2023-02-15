@@ -150,12 +150,14 @@ class Githubzulip(BotPlugin):
                     'stream': stream,
                     'topic': topic
                 }
+                self.log.info(stream)
+                self.log.info(topic)
                 response = requests.post('https://cern-rcs-sis.zulipchat.com/api/v1/external/github',
                                          headers=request.headers,
                                          params=params,
                                          json=payload)
                 self.log.info(response.status_code)
-                self.log.info(response.get_data())
+                self.log.info(response.text)
         # payload = request.form.get('payload')
         # headers = {}
         # for k, v in request.headers:
