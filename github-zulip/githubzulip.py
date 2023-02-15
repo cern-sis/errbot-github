@@ -122,8 +122,8 @@ class Githubzulip(BotPlugin):
     @webhook('/github', raw=True)
     def github(self, request):
         self.log.info(request)
-        headers = request['headers']
-        payload = request['payload']
+        headers = request.headers
+        payload = request.body
         #request_json = json.loads(request)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload:
