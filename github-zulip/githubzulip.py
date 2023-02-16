@@ -141,7 +141,7 @@ class Githubzulip(BotPlugin):
         #                                  data=payload)
         #         self.log.info(response.status_code)
         payload = request.json
-        self.log.info(payload)
+        self.log.info(request.get_data())
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload:
             case {'action': _, 'issue': _}:
