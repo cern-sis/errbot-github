@@ -141,21 +141,22 @@ class Githubzulip(BotPlugin):
         #                                  data=payload)
         #         self.log.info(response.status_code)
         payload = request.json
-        self.log.info(request.get_data())
+        # need to filter the headers out. use x-github headers and content type
+        headers = {k: v for k, v in request.headers.items() if k.startswith('X-Github')}
+        headers['Content-Type'] = 'application/json'
+        self.log.info(headers)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload:
             case {'action': _, 'issue': _}:
                 stream, topic = self.room(payload, 'issue')
                 params = {
                     'api_key': BOT_API_KEY,
-                    'stream': "test",
-                    'topic': "test"
+                    'stream': stream,
+                    'topic': topic
                 }
-                self.log.info(request.headers)
-                gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?api_key="+BOT_API_KEY+"&stream=test"
-                self.log.info(gh_api)
-                response = requests.post(gh_api,
-                                         headers=request.headers,
+                response = requests.post("https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
+                                         params=params,
+                                         headers=headers,
                                          data=request.get_data())
                 self.log.info(response.status_code)
                 self.log.info(response.text)
