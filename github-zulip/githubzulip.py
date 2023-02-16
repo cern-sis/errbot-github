@@ -141,6 +141,7 @@ class Githubzulip(BotPlugin):
         #                                  data=payload)
         #         self.log.info(response.status_code)
         payload = request.json
+        self.log.info(payload)
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         match payload:
             case {'action': _, 'issue': _}:
@@ -151,12 +152,11 @@ class Githubzulip(BotPlugin):
                     'topic': "test"
                 }
                 self.log.info(request.headers)
-                # self.log.info(stream)
-                # self.log.info(topic)
                 gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?api_key="+BOT_API_KEY+"&stream=test"
+                self.log.info(gh_api)
                 response = requests.post(gh_api,
                                          headers=request.headers,
-                                         json=payload)
+                                         data=request.get_data())
                 self.log.info(response.status_code)
                 self.log.info(response.text)
         # payload = request.form.get('payload')
