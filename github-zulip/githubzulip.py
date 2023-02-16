@@ -129,16 +129,6 @@ class Githubzulip(BotPlugin):
         event_header_map = dict.fromkeys(['issues', 'issue_comment'], 'issue')
         event_header_map.update(dict.fromkeys(['pull_request', 'pull_request_review_comment', 'pull_request_review', 'pull_request_review_thread'], 'pull_request'))
         match event_header:
-            # do custom notifications for special events
-            case "issue_comment":
-                gh_uid = payload["issue"]["user"]["login"]
-                stream, topic = self.room(payload, event_header_map[event_header])
-                user = self.get_user(gh_uid)
-                self.send(
-                    self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}"),
-                    '@**{0}** {1} issue#{2} {3} {4}'.format(user, payload["action"], payload["issue"]["number"], payload["issue"]["title"], payload["issue"]["html_url"]),
-                )
-            # use zulip github integration for generic messages
             case _:
                 stream, topic = self.room(payload, event_header_map[event_header])
                 params = {
@@ -151,4 +141,3 @@ class Githubzulip(BotPlugin):
                                          headers=headers,
                                          data=request.get_data())
                 self.log.info(response.status_code)
-                self.log.info(response.text)
