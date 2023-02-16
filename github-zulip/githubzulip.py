@@ -126,11 +126,11 @@ class Githubzulip(BotPlugin):
         event_header = headers['X-Github-Event']
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
         # map the event headers to the field in the payload
-        event_header_map = dict.fromkeys(['issues', 'issues_comment'], 'issue')
+        event_header_map = dict.fromkeys(['issues', 'issue_comment'], 'issue')
         event_header_map.update(dict.fromkeys(['pull_request', 'pull_request_review_comment', 'pull_request_review', 'pull_request_review_thread'], 'pull_request'))
         match event_header:
             # do custom notifications for special events
-            case "issues_comment":
+            case "issue_comment":
                 gh_uid = payload["issue"]["user"]["login"]
                 stream, topic = self.room(payload, event_header_map[event_header])
                 user = self.get_user(gh_uid)
