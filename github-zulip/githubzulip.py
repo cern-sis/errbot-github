@@ -117,38 +117,30 @@ class Githubzulip(BotPlugin):
                 topic = "kubernetes / "+event+" / "+str(payload[event]["number"])
 
         return stream, topic
-        #self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}")
-
+    
     @webhook('/github', raw=True)
     def github(self, request):
-        # headers can be accessed by request.headers
-        # data can be accessed by: request.json (application/json)
-        # payload = request.json
-        # BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
-        # match payload:
-        #     case {"action": _, "issue": _}:
-        #         stream, topic = self.room(payload, "issue")
-        #         params = {
-        #             "api_key": BOT_API_KEY,
-        #             "stream": stream,
-        #             "topic": topic
-        #         }
-        #         param_encoded = urlencode(params, quote_via=quote_plus)
-        #         gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+param_encoded
-        #         self.log.info(gh_api)
-        #         response = requests.post(gh_api,
-        #                                  headers=request.headers,
-        #                                  data=payload)
-        #         self.log.info(response.status_code)
         payload = request.json
-        # need to filter the headers out. use x-github headers and content type
         headers = {k: v for k, v in request.headers.items() if k.startswith('X-Github')}
         headers['Content-Type'] = 'application/json'
-        self.log.info(headers)
+        event_header = headers['X-Github-Event']
         BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
-        match payload:
-            case {'action': _, 'issue': _}:
-                stream, topic = self.room(payload, 'issue')
+        # map the event headers to the field in the payload
+        event_header_map = dict.fromkeys(['issues', 'issues_comment'], 'issue')
+        event_header_map.update(dict.fromkeys(['pull_request', 'pull_request_review_comment', 'pull_request_review', 'pull_request_review_thread'], 'pull_request'))
+        match event_header:
+            # do custom notifications for special events
+            case "issues_comment":
+                gh_uid = payload["issue"]["user"]["login"]
+                stream, topic = self.room(payload, event_header_map[event_header])
+                user = self.get_user(gh_uid)
+                self.send(
+                    self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}"),
+                    '@**{0}** {1} issue#{2} {3} {4}'.format(user, payload["action"], payload["issue"]["number"], payload["issue"]["title"], payload["issue"]["html_url"]),
+                )
+            # use zulip github integration for generic messages
+            case _:
+                stream, topic = self.room(payload, event_header_map[event_header])
                 params = {
                     'api_key': BOT_API_KEY,
                     'stream': stream,
@@ -160,74 +152,3 @@ class Githubzulip(BotPlugin):
                                          data=request.get_data())
                 self.log.info(response.status_code)
                 self.log.info(response.text)
-        # payload = request.form.get('payload')
-        # headers = {}
-        # for k, v in request.headers:
-        #     headers[k] = v
-        # headers['Content-Type'] = 'application/json'
-        # payload_json = json.loads(payload)
-        # #headers['Content-Type'] = 'application/json'
-        # #request_json = json.loads(request)
-        # BOT_API_KEY=os.environ['BOT_GITHUB_KEY']
-        # match payload_json:
-        #     case {"action": _, "issue": _}:
-        #         stream, topic = self.room(payload_json, "issue")
-        #         params = {
-        #             'api_key': BOT_API_KEY,
-        #             'stream': stream,
-        #             'topic': topic,
-        #         }
-        #         res = urlencode(params, quote_via=quote_plus)
-        #         gh_api = "https://cern-rcs-sis.zulipchat.com/api/v1/external/github?"+res
-        #         r = requests.post(gh_api, 
-        #                           headers=headers,
-        #                           json=payload)
-        #         self.log.info("Payload", payload)
-        #         self.log.info("headers", headers)
-        #         self.log.info(r.text)
-        #     case {"action": _, "pull_request": _}:
-        #         self.log.info("Pull request event")
-        #         stream, topic = self.room(payload, "pull_request")
-        #         gh_api = "https://cern-rcs-sis.zulip/api/v1/external/github?api_key="+BOT_API_KEY+"&stream="+stream+"&topic="+topic
-        #         r = requests.post(gh_api, json=payload)
-        #         self.log.info(r.json())
-
-    # @webhook('/github', raw=True)
-    # def github(self, request):
-    #         if event_header := request.headers.get('X-Github-Event'):
-    #             pass
-    #         payload = request.form.get('payload')
-    #         payload_json = json.loads(payload)
-    #         event = self.get_zulip_event_name(event_header, payload_json)
-            
-    #         body_fn = self.EVENT_FUNCTION_MAPPER[event]
-    #         body_fn(self, payload_json)
-    #         return "OK"
-
-    def get_zulip_event_name(self, event_header, payload):
-        if event_header in list(self.EVENT_FUNCTION_MAPPER.keys()):
-            return event_header
-
-    def get_issue_body(self, payload):
-        gh_uid = payload["issue"]["user"]["login"]
-        event = "issue"
-        user = self.get_user(gh_uid)
-        stream, topic = self.room(payload, event)
-        self.send(
-            self.build_identifier(f"#{{{{{stream}}}}}*{{{{{topic}}}}}"),
-            '@**{0}** {1} issue#{2} {3} {4}'.format(user, payload["action"], payload["issue"]["number"], payload["issue"]["title"], payload["issue"]["html_url"]),
-        )
-
-    def get_pullrequest_body(self, payload):
-        gh_uid = payload["pull_request"]["user"]["login"]
-        user = self.get_user(gh_uid)
-        event = "pull_request"
-        self.send(
-            self.room(payload, event),         
-            '@**{0}** {1} pull request#{2} {3} {4}'.format(user, payload["action"], payload["pull_request"]["number"], payload["pull_request"]["title"], payload["pull_request"]["html_url"]),
-        )
-
-    EVENT_FUNCTION_MAPPER = {
-        "issues": get_issue_body,
-        "pull_request": get_pullrequest_body,
-    }
