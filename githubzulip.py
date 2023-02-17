@@ -92,7 +92,7 @@ class Githubzulip(BotPlugin):
     def room(self, payload, event):
         stream = "infrastructure"
         topic = "errbot"
-
+        ignore_list = ["issues-open-science", "issues-cap", "issues-academia", "issues-scoap3", "issues-inspire", "issues"]
         match payload["repository"]["full_name"].split("/"):
             case ["inspirehep", repo]:
                 stream = "inspire"
@@ -115,6 +115,9 @@ class Githubzulip(BotPlugin):
             case ["cern-sis", "kubernetes"]:
                 stream = "infrastructure"
                 topic = "kubernetes / "+event+" / "+str(payload[event]["number"])
+            case ["cern-sis", repo]:
+                if repo in ignore_list:
+                    stream="ignore"
 
         return stream, topic
     
@@ -131,13 +134,15 @@ class Githubzulip(BotPlugin):
         match event_header:
             case _:
                 stream, topic = self.room(payload, event_header_map[event_header])
-                params = {
-                    'api_key': BOT_API_KEY,
-                    'stream': stream,
-                    'topic': topic
-                }
-                response = requests.post("https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
-                                         params=params,
-                                         headers=headers,
-                                         data=request.get_data())
-                self.log.info(response.status_code)
+                if stream != "ignore":
+                    params = {
+                        'api_key': BOT_API_KEY,
+                        'stream': stream,
+                        'topic': topic
+                    }
+                    response = requests.post("https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
+                                            params=params,
+                                            headers=headers,
+                                            data=request.get_data())
+                    self.log.info(response.status_code)
+                return "OK"
