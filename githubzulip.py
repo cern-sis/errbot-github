@@ -81,13 +81,17 @@ class Githubzulip(BotPlugin):
 
     def room(self, payload, event_header):
         event_type = self.event_type(event_header)
+        self.log.info(f"Received event type: {event_type}")
         if event_type is None:
             return None, None
 
         org, repo = payload["repository"]["full_name"].split("/")
+        self.log.info(f"From repo: {org}/{repo}")
         stream = self.stream(org, repo)
+        self.log.info(f"Send to stream: {stream}")
         ref = str(payload[event_type]["number"])
         topic = self.topic(repo, payload, ref)
+        self.log.info(f"With topic: {topic}")
         return stream, topic
 
     def event_type(self, event):
@@ -95,7 +99,8 @@ class Githubzulip(BotPlugin):
             return "issue"
         elif event.startswith("pull_request"):
             return "pull_request"
-        return None
+        else:
+            return None
 
     @webhook("/github", raw=True)
     def github(self, request):
