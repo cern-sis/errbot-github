@@ -24,7 +24,7 @@ class Githubzulip(BotPlugin):
             )
         else:
             config = CONFIG_TEMPLATE
-        super(PluginExample, self).configure(config)
+        super(Githubzulip, self).configure(config)
 
     def get_user(self, gh):
         gh_u = ""
