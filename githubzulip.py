@@ -4,8 +4,28 @@ import os
 import requests
 from urllib.parse import urlencode, quote_plus
 
+CONFIG_TEMPLATE= {
+    'IGNORED_REPOS': {
+        'cern-sis': ["issues-open-science", "issues-cap", "issues-academia", "issues-scoap3", "issues-inspire", "issues"]
+    }
+}
 
 class Githubzulip(BotPlugin):
+    def get_configuration_template(self):
+        return CONFIG_TEMPLATE
+
+    def configure(self, configuration):
+        if configuration is not None and configuration != {}:
+            config = dict(
+                chain(
+                    CONFIG_TEMPLATE.items(),
+                    configuration.items()
+                )
+            )
+        else:
+            config = CONFIG_TEMPLATE
+        super(PluginExample, self).configure(config)
+
     def get_user(self, gh):
         gh_u = ""
         client = zulip.Client(site="https://cern-rcs-sis.zulipchat.com",
@@ -28,7 +48,6 @@ class Githubzulip(BotPlugin):
     def room(self, payload, event):
         stream = "infrastructure"
         topic = "errbot"
-        ignore_list = ["issues-open-science", "issues-cap", "issues-academia", "issues-scoap3", "issues-inspire", "issues"]
         match payload["repository"]["full_name"].split("/"):
             case ["inspirehep", repo]:
                 stream = "inspire"
@@ -54,10 +73,10 @@ class Githubzulip(BotPlugin):
             case ["cern-sis", "workflows"]:
                 stream = "scoap3"
                 topic = "workflows / "+event+" / "+str(payload[event]["number"])
-            case ["cern-sis", repo]:
-                if repo in ignore_list:
+            case [org, repo]:
+                ignored_repos = self.config['IGNORED_REPOS']
+                if repo in ignored_repos.get(org, []):
                     stream="ignore"
-
         return stream, topic
     
     @webhook('/github', raw=True)
