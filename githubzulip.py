@@ -1,6 +1,5 @@
 from errbot import BotPlugin, webhook
 import zulip
-import json
 import os
 import requests
 from urllib.parse import urlencode, quote_plus
@@ -52,6 +51,9 @@ class Githubzulip(BotPlugin):
             case ["cern-sis", "kubernetes"]:
                 stream = "infrastructure"
                 topic = "kubernetes / "+event+" / "+str(payload[event]["number"])
+            case ["cern-sis", "workflows"]:
+                stream = "scoap3"
+                topic = "workflows / "+event+" / "+str(payload[event]["number"])
             case ["cern-sis", repo]:
                 if repo in ignore_list:
                     stream="ignore"
