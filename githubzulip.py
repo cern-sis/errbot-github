@@ -1,14 +1,23 @@
-from errbot import BotPlugin, webhook
-import zulip
 import os
-import requests
-from urllib.parse import urlencode, quote_plus
+from itertools import chain
 
-CONFIG_TEMPLATE= {
+import requests
+import zulip
+from errbot import BotPlugin, webhook
+
+CONFIG_TEMPLATE = {
     "IGNORED_REPOS": {
-        "cern-sis": ["issues-open-science", "issues-cap", "issues-academia", "issues-scoap3", "issues-inspire", "issues"]
-    }
+        "cern-sis": [
+            "issues-open-science",
+            "issues-cap",
+            "issues-academia",
+            "issues-scoap3",
+            "issues-inspire",
+            "issues",
+        ],
+    },
 }
+
 
 class Githubzulip(BotPlugin):
     def get_configuration_template(self):
@@ -16,21 +25,18 @@ class Githubzulip(BotPlugin):
 
     def configure(self, configuration):
         if configuration is not None and configuration != {}:
-            config = dict(
-                chain(
-                    CONFIG_TEMPLATE.items(),
-                    configuration.items()
-                )
-            )
+            config = dict(chain(CONFIG_TEMPLATE.items(), configuration.items()))
         else:
             config = CONFIG_TEMPLATE
         super(Githubzulip, self).configure(config)
 
     def get_user(self, gh):
         gh_u = ""
-        client = zulip.Client(site="https://cern-rcs-sis.zulipchat.com",
-                              email="errbot-bot@cern-rcs-sis.zulipchat.com",
-                              api_key=os.environ["BOT_ZULIP_KEY"])
+        client = zulip.Client(
+            site="https://cern-rcs-sis.zulipchat.com",
+            email="errbot-bot@cern-rcs-sis.zulipchat.com",
+            api_key=os.environ["BOT_ZULIP_KEY"],
+        )
         result = client.get_members()
         result = client.get_members({"client_gravatar": False})
         result = client.get_members({"include_custom_profile_fields": True})
@@ -45,62 +51,74 @@ class Githubzulip(BotPlugin):
                             gh_u = member["full_name"]
         return gh_u
 
-    def room(self, payload, event):
-        stream = "infrastructure"
-        topic = "errbot"
-        match payload["repository"]["full_name"].split("/"):
-            case ["inspirehep", repo]:
-                stream = "inspire"
-                topic = repo+" / "+event+" / "+str(payload[event]["number"])
-            case ["HEPData", repo]:
-                stream = "hepdata"
-                topic = repo+" / "+event+" / "+str(payload[event]["number"])
-            case ["scoap3", repo]:
-                stream = "scoap3"
-                topic = repo+" / "+event+" / "+str(payload[event]["number"])
-            case ["cernanalysispreservation", repo]:
-                stream = "cap"
-                topic = repo+" / "+event+" / "+str(payload[event]["number"])
-            case ["cern-sis", "digitization"]:
-                stream = "digitization"
-                topic = stream+" / "+event+" / "+str(payload[event]["number"])
-            case ["cern-sis", "cern-academic-training"]:
-                stream = "cat"
-                topic = stream+" / "+event+" / "+str(payload[event]["number"])
-            case ["cern-sis", "kubernetes"]:
-                stream = "infrastructure"
-                topic = "kubernetes / "+event+" / "+str(payload[event]["number"])
-            case ["cern-sis", "workflows"]:
-                stream = "scoap3"
-                topic = "workflows / "+event+" / "+str(payload[event]["number"])
-            case [org, repo]:
+    def stream(self, org, repo):
+        match (org, repo):
+            case ("inspirehep", _):
+                return "inspire"
+            case ("hepdata", _):
+                return "hepdata"
+            case ("scoap3", _):
+                return "scoap3"
+            case ("cernanalysispreservation", _):
+                return "cap"
+            case ("cern-sis", "digitization"):
+                return "digitization"
+            case ("cern-sis", "cern-academic-training"):
+                return "cat"
+            case ("cern-sis", "kubernetes"):
+                return "infrastructure"
+            case ("cern-sis", "workflows"):
+                return "scoap3"
+            case (org, _):
                 ignored_repos = self.config["IGNORED_REPOS"]
                 if repo in ignored_repos.get(org, []):
-                    stream="ignore"
+                    return None
+                else:
+                    return org
+
+    def topic(self, repo, event, ref):
+        return f"{repo} / {event} / {ref}"
+
+    def room(self, payload, event_header):
+        event_type = self.event_type[event_header]
+        if event_type is None:
+            return None, None
+
+        org, repo = payload["repository"]["full_name"].split("/")
+        stream = self.stream(org, repo)
+        ref = str(payload[event_type]["number"])
+        topic = self.topic(repo, payload, ref)
         return stream, topic
-    
+
+    def event_type(self, event):
+        if event.starswith("issue"):
+            return "issue"
+        elif event.starswith("pull_request"):
+            return "pull_request"
+        return None
+
     @webhook("/github", raw=True)
     def github(self, request):
         payload = request.json
         headers = {k: v for k, v in request.headers.items() if k.startswith("X-Github")}
         headers["Content-Type"] = "application/json"
         event_header = headers["X-Github-Event"]
-        BOT_API_KEY=os.environ["BOT_GITHUB_KEY"]
-        # map the event headers to the field in the payload
-        event_header_map = dict.fromkeys(["issues", "issue_comment"], "issue")
-        event_header_map.update(dict.fromkeys(["pull_request", "pull_request_review_comment", "pull_request_review", "pull_request_review_thread"], "pull_request"))
-        match event_header:
-            case _:
-                stream, topic = self.room(payload, event_header_map[event_header])
-                if stream != "ignore":
-                    params = {
-                        "api_key": BOT_API_KEY,
-                        "stream": stream,
-                        "topic": topic
-                    }
-                    response = requests.post("https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
-                                            params=params,
-                                            headers=headers,
-                                            data=request.get_data())
-                    self.log.info(response.status_code)
-                return "OK"
+
+        stream, topic = self.room(payload, event_header)
+        if stream is None:
+            return None
+
+        params = {
+            "api_key": os.environ["BOT_GITHUB_KEY"],
+            "stream": stream,
+            "topic": topic,
+        }
+        response = requests.post(
+            "https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
+            params=params,
+            headers=headers,
+            data=request.get_data(),
+        )
+        self.log.info(response.status_code)
+
+        return None
