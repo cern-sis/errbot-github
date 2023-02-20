@@ -80,13 +80,13 @@ class Githubzulip(BotPlugin):
         return f"{repo} / {event} / {ref}"
 
     def room(self, payload, event_header):
-        event_type = self.event_type[event_header]
-        if event_type is None:
+        e_type = self.event_type[event_header]
+        if e_type is None:
             return None, None
 
         org, repo = payload["repository"]["full_name"].split("/")
         stream = self.stream(org, repo)
-        ref = str(payload[event_type]["number"])
+        ref = str(payload[e_type]["number"])
         topic = self.topic(repo, payload, ref)
         return stream, topic
 
