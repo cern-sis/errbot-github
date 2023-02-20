@@ -120,5 +120,3 @@ class Githubzulip(BotPlugin):
             data=request.get_data(),
         )
         self.log.info(response.status_code)
-
-        return None
