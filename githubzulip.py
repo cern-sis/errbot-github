@@ -33,7 +33,7 @@ class Githubzulip(BotPlugin):
             case ["inspirehep", repo]:
                 stream = "inspire"
                 topic = repo+" / "+event+" / "+str(payload[event]["number"])
-            case ["hepdata", repo]:
+            case ["HEPData", repo]:
                 stream = "hepdata"
                 topic = repo+" / "+event+" / "+str(payload[event]["number"])
             case ["scoap3", repo]:
