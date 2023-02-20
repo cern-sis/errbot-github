@@ -91,9 +91,9 @@ class Githubzulip(BotPlugin):
         return stream, topic
 
     def event_type(self, event):
-        if event.starswith("issue"):
+        if event.startswith("issue"):
             return "issue"
-        elif event.starswith("pull_request"):
+        elif event.startswith("pull_request"):
             return "pull_request"
         return None
 
