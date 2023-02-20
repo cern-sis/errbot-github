@@ -76,25 +76,21 @@ class Githubzulip(BotPlugin):
                 else:
                     return org
 
-    def topic(self, repo, event, ref):
-        return f"{repo} / {event} / {ref}"
+    def topic(self, repo, item, ref):
+        return f"{repo} / {item} / {ref}"
 
     def room(self, payload, event_header):
-        event_type = self.event_type(event_header)
-        self.log.info(f"Received event type: {event_type}")
-        if event_type is None:
+        item = self.item(event_header)
+        if item is None:
             return None, None
 
         org, repo = payload["repository"]["full_name"].split("/")
-        self.log.info(f"From repo: {org}/{repo}")
         stream = self.stream(org, repo)
-        self.log.info(f"Send to stream: {stream}")
-        ref = str(payload[event_type]["number"])
-        topic = self.topic(repo, payload, ref)
-        self.log.info(f"With topic: {topic}")
+        ref = str(payload[item]["number"])
+        topic = self.topic(repo, item, ref)
         return stream, topic
 
-    def event_type(self, event):
+    def item(self, event):
         if event.startswith("issue"):
             return "issue"
         elif event.startswith("pull_request"):
