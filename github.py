@@ -55,10 +55,6 @@ class Github(BotPlugin):
         match (org, repo):
             case ("inspirehep", _):
                 return "inspire"
-            case ("hepdata", _):
-                return "hepdata"
-            case ("scoap3", _):
-                return "scoap3"
             case ("cernanalysispreservation", _):
                 return "cap"
             case ("cern-sis", "digitization"):
@@ -75,8 +71,8 @@ class Github(BotPlugin):
                 return org
 
     @staticmethod
-    def topic(repo, item, ref):
-        return f"{repo}/{item}/{ref}"
+    def topic(repo, ref):
+        return f"{repo}/{ref}"
 
     def room(self, payload, event_header):
         item = self.item(event_header)
@@ -86,7 +82,7 @@ class Github(BotPlugin):
         org, repo = payload["repository"]["full_name"].split("/")
         stream = self.stream(org, repo)
         ref = str(payload[item]["number"])
-        topic = self.topic(repo, item, ref)
+        topic = self.topic(repo, ref)
         return stream, topic
 
     @staticmethod
