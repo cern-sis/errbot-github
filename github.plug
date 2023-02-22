@@ -1,0 +1,10 @@
+[Core]
+Name = Github
+Module = github
+DependsOn = Archive
+
+[Documentation]
+Description = Plugin to recieve webhooks from Github and route it to Zulip
+
+[Python]
+Version = 3

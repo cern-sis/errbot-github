@@ -2,7 +2,6 @@ import os
 from itertools import chain
 
 import requests
-import zulip
 from errbot import BotPlugin, webhook
 
 CONFIG_TEMPLATE = {
@@ -19,8 +18,9 @@ CONFIG_TEMPLATE = {
 }
 
 
-class Githubzulip(BotPlugin):
-    def get_configuration_template(self):
+class Github(BotPlugin):
+    @staticmethod
+    def get_configuration_template():
         return CONFIG_TEMPLATE
 
     def configure(self, configuration):
@@ -28,15 +28,11 @@ class Githubzulip(BotPlugin):
             config = dict(chain(CONFIG_TEMPLATE.items(), configuration.items()))
         else:
             config = CONFIG_TEMPLATE
-        super(Githubzulip, self).configure(config)
+        super(Github, self).configure(config)
 
     def get_user(self, gh):
         gh_u = ""
-        client = zulip.Client(
-            site="https://cern-rcs-sis.zulipchat.com",
-            email="errbot-bot@cern-rcs-sis.zulipchat.com",
-            api_key=os.environ["BOT_ZULIP_KEY"],
-        )
+        client = self._bot.client()
         result = client.get_members()
         result = client.get_members({"client_gravatar": False})
         result = client.get_members({"include_custom_profile_fields": True})
@@ -76,26 +72,37 @@ class Githubzulip(BotPlugin):
                 else:
                     return org
 
-    def topic(self, repo, event, ref):
-        return f"{repo} / {event} / {ref}"
+    @staticmethod
+    def topic(repo, item, ref):
+        return f"{repo}/{item}/{ref}"
 
     def room(self, payload, event_header):
-        event_type = self.event_type[event_header]
-        if event_type is None:
+        item = self.item(event_header)
+        if item is None:
             return None, None
 
         org, repo = payload["repository"]["full_name"].split("/")
         stream = self.stream(org, repo)
-        ref = str(payload[event_type]["number"])
-        topic = self.topic(repo, payload, ref)
+        ref = str(payload[item]["number"])
+        topic = self.topic(repo, item, ref)
         return stream, topic
 
-    def event_type(self, event):
-        if event.starswith("issue"):
+    @staticmethod
+    def item(event):
+        if event.startswith("issue"):
             return "issue"
-        elif event.starswith("pull_request"):
+        elif event.startswith("pull_request"):
             return "pull_request"
-        return None
+        else:
+            return None
+
+    @staticmethod
+    def has_been_closed(payload):
+        return payload["action"] == "closed"
+
+    @staticmethod
+    def has_been_reopened(payload):
+        return payload["action"] == "reopened"
 
     @webhook("/github", raw=True)
     def github(self, request):
@@ -107,6 +114,10 @@ class Githubzulip(BotPlugin):
         stream, topic = self.room(payload, event_header)
         if stream is None:
             return None
+
+        if payload["action"] == "reopened":
+            archive_topic = self.get_plugin("Archive").archived_topic(stream, topic)
+            self.get_plugin("Archive").restore_topic(archive_topic)
 
         params = {
             "api_key": os.environ["BOT_GITHUB_KEY"],
@@ -120,3 +131,6 @@ class Githubzulip(BotPlugin):
             data=request.get_data(),
         )
         self.log.info(response.status_code)
+
+        if payload["action"] == "closed":
+            self.get_plugin("Archive").archive_topic(stream, topic)
