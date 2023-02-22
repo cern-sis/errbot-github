@@ -48,6 +48,10 @@ class Github(BotPlugin):
         return gh_u
 
     def stream(self, org, repo):
+        ignored_repos = self.config["IGNORED_REPOS"]
+        if repo in ignored_repos.get(org, []):
+            return None
+
         match (org, repo):
             case ("inspirehep", _):
                 return "inspire"
@@ -65,12 +69,10 @@ class Github(BotPlugin):
                 return "infrastructure"
             case ("cern-sis", "workflows"):
                 return "scoap3"
+            case ("cern-sis", _):
+                return "sis"
             case (org, _):
-                ignored_repos = self.config["IGNORED_REPOS"]
-                if repo in ignored_repos.get(org, []):
-                    return None
-                else:
-                    return org
+                return org
 
     @staticmethod
     def topic(repo, item, ref):
