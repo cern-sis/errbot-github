@@ -4,7 +4,7 @@ from itertools import chain
 import requests
 from errbot import BotPlugin, webhook
 
-import lib.issue
+from renderers import render
 
 CONFIG_TEMPLATE = {
     "IGNORED_REPOS": {
@@ -109,7 +109,8 @@ class Github(BotPlugin):
         headers = {k: v for k, v in request.headers.items() if k.startswith("X-Github")}
         headers["Content-Type"] = "application/json"
 
-        if (content := lib.issue.render(payload)) is not None:
+        content = render(payload)
+        if content is not None:
             client = self._bot.client()
             response = client.send_message(
                 {

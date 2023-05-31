@@ -1,7 +1,4 @@
 def render(payload):
-  if "issue" not in payload:
-    return None
-
   user = payload["sender"]["login"]
   issue = payload["issue"]
 
