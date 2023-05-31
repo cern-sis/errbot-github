@@ -4,6 +4,8 @@ from itertools import chain
 import requests
 from errbot import BotPlugin, webhook
 
+import lib.issue
+
 CONFIG_TEMPLATE = {
     "IGNORED_REPOS": {
         "cern-sis": [
@@ -102,12 +104,39 @@ class Github(BotPlugin):
     def has_been_reopened(payload):
         return payload["action"] == "reopened"
 
-    @webhook("/github", raw=True)
-    def github(self, request):
+    def send_notification(self, request, stream, topic):
         payload = request.json
         headers = {k: v for k, v in request.headers.items() if k.startswith("X-Github")}
         headers["Content-Type"] = "application/json"
-        event_header = headers["X-Github-Event"]
+
+        if (content := lib.issue.render(payload)) is not None:
+            client = self._bot.client()
+            response = client.send_message(
+                {
+                    "type": "stream",
+                    "to": stream,
+                    "topic": topic,
+                    "content": content,
+                }
+            )
+        else:
+            params = {
+                "api_key": os.environ["BOT_GITHUB_KEY"],
+                "stream": stream,
+                "topic": topic,
+            }
+            response = requests.post(
+                "https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
+                params=params,
+                headers=headers,
+                data=request.get_data(),
+            )
+            self.log.info(response.status_code)
+
+    @webhook("/github", raw=True)
+    def github(self, request):
+        payload = request.json
+        event_header = request.headers["X-Github-Event"]
 
         stream, topic = self.room(payload, event_header)
         if stream is None:
@@ -117,18 +146,7 @@ class Github(BotPlugin):
             archive_topic = self.get_plugin("Archive").archived_topic(stream, topic)
             self.get_plugin("Archive").restore_topic(archive_topic)
 
-        params = {
-            "api_key": os.environ["BOT_GITHUB_KEY"],
-            "stream": stream,
-            "topic": topic,
-        }
-        response = requests.post(
-            "https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
-            params=params,
-            headers=headers,
-            data=request.get_data(),
-        )
-        self.log.info(response.status_code)
+        self.send_notification(request, stream, topic)
 
         if payload["action"] == "closed":
             self.get_plugin("Archive").archive_topic(stream, topic)

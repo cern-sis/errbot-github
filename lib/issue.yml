@@ -1,0 +1,59 @@
+def render(payload):
+  if "issue" not in payload:
+    return None
+
+  user = payload["sender"]["login"]
+  issue = payload["issue"]
+
+  match payload["action"]:
+    case "assigned":
+      return f"{user} assigned this issue to {payload['assignee']['login']}."
+
+    case "closed":
+      return f"Closed by {user}."
+
+    case "deleted":
+      return f"Deleted by {user}."
+
+    case "demilestoned":
+      return None
+
+    case "edited":
+      return None
+
+    case "labeled":
+      return None
+
+    case "locked":
+      return None
+
+    case "milestoned":
+      return None
+
+    case "opened":
+      return f"""
+      {user} opened {issue['html_url']}."
+      {issue['title']}
+      {issue['body']}
+      """
+      
+    case "pinned":
+      return None
+
+    case "reopened":
+      return f"Re-opened by {user}."
+
+    case "transferred":
+      return None
+
+    case "unassigned":
+      return None
+
+    case "unlabeled":
+      return None
+
+    case "unlocked":
+      return None
+
+    case "unpinned":
+      return None
