@@ -6,7 +6,7 @@ def render(logger, payload):
     issue = payload["issue"]
     action = payload["action"]
 
-    logger.info("Issue has been {action}")
+    logger.info(f"Issue has been {action}")
 
     match action:
         case "assigned":
