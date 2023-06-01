@@ -1,3 +1,6 @@
+from diff_match_patch import diff_match_patch
+
+
 def render(payload):
     user = payload["sender"]["login"]
     issue = payload["issue"]
@@ -23,6 +26,33 @@ def render(payload):
         """
 
         case "edited":
+            changes = payload["changes"]
+            dmp = diff_match_patch()
+
+            if "body" in changes:
+                old = changes["body"]["from"]
+                new = issue["body"]
+                patch = dmp.patch_make(old, new)
+
+                return f"""
+                {user} changed the body of this issue
+                ```patch
+                {patch}
+                ```
+                """
+
+            elif "title" in changes:
+                old = changes["title"]["from"]
+                new = issue["title"]
+                patch = dmp.patch_make(old, new)
+
+                return f"""
+                {user} changed the title of this issue
+                ```patch
+                {patch}
+                ```
+                """
+
             return None
 
         case "labeled":
