@@ -101,9 +101,10 @@ class Github(BotPlugin):
         headers = {k: v for k, v in request.headers.items() if k.startswith("X-Github")}
         headers["Content-Type"] = "application/json"
 
-        match render(payload):
+        match render(self.log, payload):
             case False:
                 # Dropping notification for this event
+                self.log.info("Dropping Github webhook event")
                 return False
 
             case None:
@@ -119,6 +120,9 @@ class Github(BotPlugin):
                     headers=headers,
                     data=request.get_data(),
                 )
+                self.log.info(
+                    "Forwarding Github webhook event to the github integration"
+                )
                 self.log.info(response.status_code)
 
             case content:
@@ -132,6 +136,8 @@ class Github(BotPlugin):
                         "content": content,
                     }
                 )
+                self.log.info("Sending Github webhook event notification")
+                self.log.info(response.status_code)
 
     @webhook("/github", raw=True)
     def github(self, request):

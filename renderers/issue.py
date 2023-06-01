@@ -1,11 +1,14 @@
 from diff_match_patch import diff_match_patch
 
 
-def render(payload):
+def render(logger, payload):
     user = payload["sender"]["login"]
     issue = payload["issue"]
+    action = payload["action"]
 
-    match payload["action"]:
+    logger.info("Issue has been {action}")
+
+    match action:
         case "assigned":
             return f"""
         {user} assigned this issue to {[a['login'] for a in payload['assignees']]}.

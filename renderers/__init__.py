@@ -1,8 +1,9 @@
 from . import issue
 
 
-def render(payload):
+def render(logger, payload):
     if "issue" in payload:
-        issue.render(payload)
+        logger.info("Rendering an issue event")
+        issue.render(logger, payload)
     else:
         return None
