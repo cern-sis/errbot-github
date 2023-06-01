@@ -4,7 +4,7 @@ def render(payload):
 
   match payload["action"]:
     case "assigned":
-      return f"{user} assigned this issue to {payload['assignee']['login']}."
+      return f"{user} assigned this issue to {payload['assignees'].map(a => a['login'])}."
 
     case "closed":
       return f"Closed by {user}."
@@ -13,29 +13,29 @@ def render(payload):
       return f"Deleted by {user}."
 
     case "demilestoned":
-      return None
+      return f"{user} removed this issue from the milestone [{issue['milestone']['title']}]({issue['milestone']['html_url']})."
 
     case "edited":
       return None
 
     case "labeled":
-      return None
+      return f"{user} added label {issue['label']['name']}."
 
     case "locked":
-      return None
+      return False
 
     case "milestoned":
-      return None
+      return f"{user} added this issue to the milestone [{issue['milestone']['title']}]({issue['milestone']['html_url']})."
 
     case "opened":
       return f"""
-      {user} opened {issue['html_url']}."
+      {user} opened issue [{issue['id']}]({issue['html_url']}).
       {issue['title']}
       {issue['body']}
       """
-      
+
     case "pinned":
-      return None
+      return False
 
     case "reopened":
       return f"Re-opened by {user}."
@@ -44,13 +44,13 @@ def render(payload):
       return None
 
     case "unassigned":
-      return None
+      return f"{user} unassigned this issue."
 
     case "unlabeled":
-      return None
+      return f"{user} removed label {issue['label']['name']}."
 
     case "unlocked":
-      return None
+      return False
 
     case "unpinned":
-      return None
+      return False

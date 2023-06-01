@@ -96,43 +96,42 @@ class Github(BotPlugin):
         else:
             return None
 
-    @staticmethod
-    def has_been_closed(payload):
-        return payload["action"] == "closed"
-
-    @staticmethod
-    def has_been_reopened(payload):
-        return payload["action"] == "reopened"
-
     def send_notification(self, request, stream, topic):
         payload = request.json
         headers = {k: v for k, v in request.headers.items() if k.startswith("X-Github")}
         headers["Content-Type"] = "application/json"
 
-        content = render(payload)
-        if content is not None:
-            client = self._bot.client()
-            response = client.send_message(
-                {
-                    "type": "stream",
-                    "to": stream,
+        match render(payload):
+            case False:
+                # Dropping notification for this event
+                return False
+
+            case None:
+                # Use the default GH integration from Zulip
+                params = {
+                    "api_key": os.environ["BOT_GITHUB_KEY"],
+                    "stream": stream,
                     "topic": topic,
-                    "content": content,
                 }
-            )
-        else:
-            params = {
-                "api_key": os.environ["BOT_GITHUB_KEY"],
-                "stream": stream,
-                "topic": topic,
-            }
-            response = requests.post(
-                "https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
-                params=params,
-                headers=headers,
-                data=request.get_data(),
-            )
-            self.log.info(response.status_code)
+                response = requests.post(
+                    "https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
+                    params=params,
+                    headers=headers,
+                    data=request.get_data(),
+                )
+                self.log.info(response.status_code)
+
+            case content:
+                # Use our own template for this event
+                client = self._bot.client()
+                response = client.send_message(
+                    {
+                        "type": "stream",
+                        "to": stream,
+                        "topic": topic,
+                        "content": content,
+                    }
+                )
 
     @webhook("/github", raw=True)
     def github(self, request):
