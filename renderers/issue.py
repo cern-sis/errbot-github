@@ -31,6 +31,7 @@ def render(logger, payload):
         case "edited":
             changes = payload["changes"]
             dmp = diff_match_patch()
+            logger.info(f"{payload['changes']}")
 
             if "body" in changes:
                 old = changes["body"]["from"]

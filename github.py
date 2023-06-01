@@ -105,7 +105,6 @@ class Github(BotPlugin):
             case False:
                 # Dropping notification for this event
                 self.log.info("Dropping Github webhook event")
-                return False
 
             case None:
                 # Use the default GH integration from Zulip
