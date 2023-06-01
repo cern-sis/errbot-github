@@ -126,7 +126,7 @@ class Github(BotPlugin):
 
             case content:
                 # Use our own template for this event
-                client = self._bot.client()
+                client = self._bot.client
                 response = client.send_message(
                     {
                         "type": "stream",
