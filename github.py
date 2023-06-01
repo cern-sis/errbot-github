@@ -113,7 +113,7 @@ class Github(BotPlugin):
                     "stream": stream,
                     "topic": topic,
                 }
-                response = requests.post(
+                requests.post(
                     "https://cern-rcs-sis.zulipchat.com/api/v1/external/github",
                     params=params,
                     headers=headers,
@@ -122,12 +122,11 @@ class Github(BotPlugin):
                 self.log.info(
                     "Forwarding Github webhook event to the github integration"
                 )
-                self.log.info(response.status_code)
 
             case content:
                 # Use our own template for this event
                 client = self._bot.client
-                response = client.send_message(
+                client.send_message(
                     {
                         "type": "stream",
                         "to": stream,
@@ -136,7 +135,6 @@ class Github(BotPlugin):
                     }
                 )
                 self.log.info("Sending Github webhook event notification")
-                self.log.info(response.status_code)
 
     @webhook("/github", raw=True)
     def github(self, request):

@@ -40,7 +40,7 @@ def render(logger, payload):
                 return f"""
                 {user} changed the body of this issue
                 ```patch
-                {patch}
+                {dmp.patch_toText(patch)}
                 ```
                 """
 
@@ -52,11 +52,11 @@ def render(logger, payload):
                 return f"""
                 {user} changed the title of this issue
                 ```patch
-                {patch}
+                {dmp.patch_toText(patch)}
                 ```
                 """
 
-            return "didn't match"
+            return None
 
         case "labeled":
             return f"{user} added label {issue['label']['name']}."
