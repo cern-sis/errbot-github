@@ -31,7 +31,6 @@ def render(logger, payload):
         case "edited":
             changes = payload["changes"]
             dmp = diff_match_patch()
-            logger.info(f"{changes['body']}")
 
             if "body" in changes:
                 old = changes["body"]["from"]
@@ -57,7 +56,7 @@ def render(logger, payload):
                 ```
                 """
 
-            return None
+            return "didn't match"
 
         case "labeled":
             return f"{user} added label {issue['label']['name']}."
