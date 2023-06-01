@@ -1,7 +1,8 @@
+from . import issue
+
+
 def render(payload):
     if "issue" in payload:
-        from .issue import render
-
-        render(payload)
+        issue.render(payload)
     else:
         return None
