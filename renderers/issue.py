@@ -43,8 +43,7 @@ def render(logger, payload):
                 diff = "".join(unified_diff(old, new))
 
                 return dedent(
-                    f"""\
-                    {user} changed the body of this issue
+                    f"""{user} changed the body of this issue
                     ```patch
                     {diff}
                     ```
