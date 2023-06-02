@@ -1,4 +1,5 @@
 from difflib import unified_diff
+from inspect import cleandoc
 
 
 def render(logger, payload):
@@ -10,9 +11,12 @@ def render(logger, payload):
 
     match action:
         case "assigned":
-            return f"""
-        {user} assigned this issue to {[a['login'] for a in payload['assignees']]}.
-        """
+            return cleandoc(
+                f"""
+                {user} assigned this issue to:
+                {[a['login'] for a in payload['assignees']]}.
+                """
+            )
 
         case "closed":
             return f"Closed by {user}."
@@ -24,9 +28,11 @@ def render(logger, payload):
             milestone = issue["milestone"]
             link = f"[{milestone['title']}]({milestone['html_url']})"
 
-            return f"""
-        {user} removed this issue from the milestone {link}.
-        """
+            return cleandoc(
+                f"""
+                {user} removed this issue from the milestone {link}.
+                """
+            )
 
         case "edited":
             changes = payload["changes"]
@@ -36,24 +42,28 @@ def render(logger, payload):
                 new = issue["body"]
                 diff = "".join(unified_diff(old, new))
 
-                return f"""
-                {user} changed the body of this issue
-                ```patch
-                {diff}
-                ```
-                """
+                return cleandoc(
+                    f"""
+                    {user} changed the body of this issue
+                    ```patch
+                    {diff}
+                    ```
+                    """
+                )
 
             elif "title" in changes:
                 old = changes["title"]["from"]
                 new = issue["title"]
                 diff = "".join(unified_diff(old, new))
 
-                return f"""
-                {user} changed the title of this issue
-                ```patch
-                {diff}
-                ```
-                """
+                return cleandoc(
+                    f"""
+                    {user} changed the title of this issue
+                    ```patch
+                    {diff}
+                    ```
+                    """
+                )
 
             return None
 
@@ -67,16 +77,20 @@ def render(logger, payload):
             milestone = issue["milestone"]
             link = f"[{milestone['title']}]({milestone['html_url']})"
 
-            return f"""
-        {user} added this issue to the milestone {link}.
-        """
+            return cleandoc(
+                f"""
+                {user} added this issue to the milestone {link}.
+                """
+            )
 
         case "opened":
-            return f"""
-      {user} opened issue [{issue['id']}]({issue['html_url']}).
-      {issue['title']}
-      {issue['body']}
-      """
+            return cleandoc(
+                f"""
+                {user} opened issue [{issue['id']}]({issue['html_url']}).
+                {issue['title']}
+                {issue['body']}
+                """
+            )
 
         case "pinned":
             return False
