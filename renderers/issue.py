@@ -1,5 +1,5 @@
 from difflib import unified_diff
-from inspect import cleandoc
+from inspect import dedent
 
 
 def render(logger, payload):
@@ -11,7 +11,7 @@ def render(logger, payload):
 
     match action:
         case "assigned":
-            return cleandoc(
+            return dedent(
                 f"""
                 {user} assigned this issue to:
                 {[a['login'] for a in payload['assignees']]}.
@@ -28,7 +28,7 @@ def render(logger, payload):
             milestone = issue["milestone"]
             link = f"[{milestone['title']}]({milestone['html_url']})"
 
-            return cleandoc(
+            return dedent(
                 f"""
                 {user} removed this issue from the milestone {link}.
                 """
@@ -42,7 +42,7 @@ def render(logger, payload):
                 new = issue["body"]
                 diff = "".join(unified_diff(old, new))
 
-                return cleandoc(
+                return dedent(
                     f"""
                     {user} changed the body of this issue
                     ```patch
@@ -56,7 +56,7 @@ def render(logger, payload):
                 new = issue["title"]
                 diff = "".join(unified_diff(old, new))
 
-                return cleandoc(
+                return dedent(
                     f"""
                     {user} changed the title of this issue
                     ```patch
@@ -77,14 +77,14 @@ def render(logger, payload):
             milestone = issue["milestone"]
             link = f"[{milestone['title']}]({milestone['html_url']})"
 
-            return cleandoc(
+            return dedent(
                 f"""
                 {user} added this issue to the milestone {link}.
                 """
             )
 
         case "opened":
-            return cleandoc(
+            return dedent(
                 f"""
                 {user} opened issue [{issue['id']}]({issue['html_url']}).
                 {issue['title']}
