@@ -42,13 +42,15 @@ def render(logger, payload):
                 new = issue["body"]
                 diff = "".join(unified_diff(old, new))
 
-                return dedent(
-                    f"""\
-                    {user} changed the body of this issue
-                    ```patch
-                    {diff}
-                    ```
-                    """
+                return repr(
+                    dedent(
+                        f"""\
+                        {user} changed the body of this issue
+                        ```patch
+                        {diff}
+                        ```
+                        """
+                    )
                 )
 
             elif "title" in changes:
