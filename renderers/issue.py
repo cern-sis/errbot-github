@@ -12,7 +12,7 @@ def render(logger, payload):
     match action:
         case "assigned":
             return dedent(
-                f"""
+                f"""\
                 {user} assigned this issue to:
                 {[a['login'] for a in payload['assignees']]}.
                 """
@@ -29,7 +29,7 @@ def render(logger, payload):
             link = f"[{milestone['title']}]({milestone['html_url']})"
 
             return dedent(
-                f"""
+                f"""\
                 {user} removed this issue from the milestone {link}.
                 """
             )
@@ -43,7 +43,7 @@ def render(logger, payload):
                 diff = "".join(unified_diff(old, new))
 
                 return dedent(
-                    f"""
+                    f"""\
                     {user} changed the body of this issue
                     ```patch
                     {diff}
@@ -57,7 +57,7 @@ def render(logger, payload):
                 diff = "".join(unified_diff(old, new))
 
                 return dedent(
-                    f"""
+                    f"""\
                     {user} changed the title of this issue
                     ```patch
                     {diff}
@@ -78,14 +78,14 @@ def render(logger, payload):
             link = f"[{milestone['title']}]({milestone['html_url']})"
 
             return dedent(
-                f"""
+                f"""\
                 {user} added this issue to the milestone {link}.
                 """
             )
 
         case "opened":
             return dedent(
-                f"""
+                f"""\
                 {user} opened issue [{issue['id']}]({issue['html_url']}).
                 {issue['title']}
                 {issue['body']}
