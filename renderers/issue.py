@@ -1,5 +1,5 @@
 from difflib import unified_diff
-from inspect import dedent
+from textwrap import dedent
 
 
 def render(logger, payload):
