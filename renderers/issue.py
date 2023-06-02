@@ -66,7 +66,7 @@ def render(logger, payload):
             return None
 
         case "labeled":
-            return f"{user} added label {issue['label']['name']}."
+            return f"{user} added label {payload['label']['name']}."
 
         case "locked":
             return False
@@ -103,7 +103,7 @@ def render(logger, payload):
             return f"{user} unassigned this issue."
 
         case "unlabeled":
-            return f"{user} removed label {issue['label']['name']}."
+            return f"{user} removed label {payload['label']['name']}."
 
         case "unlocked":
             return False
