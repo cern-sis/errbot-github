@@ -1,4 +1,4 @@
-from diff_match_patch import diff_match_patch
+from difflib import unified_diff
 
 
 def render(logger, payload):
@@ -30,29 +30,28 @@ def render(logger, payload):
 
         case "edited":
             changes = payload["changes"]
-            dmp = diff_match_patch()
 
             if "body" in changes:
                 old = changes["body"]["from"]
                 new = issue["body"]
-                patch = dmp.patch_make(old, new)
+                diff = "".join(unified_diff(old, new))
 
                 return f"""
                 {user} changed the body of this issue
                 ```patch
-                {dmp.patch_toText(patch)}
+                {diff}
                 ```
                 """
 
             elif "title" in changes:
                 old = changes["title"]["from"]
                 new = issue["title"]
-                patch = dmp.patch_make(old, new)
+                diff = "".join(unified_diff(old, new))
 
                 return f"""
                 {user} changed the title of this issue
                 ```patch
-                {dmp.patch_toText(patch)}
+                {diff}
                 ```
                 """
 
