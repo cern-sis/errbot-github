@@ -1,5 +1,5 @@
 from difflib import unified_diff
-from textwrap import dedent
+from inspect import cleandoc
 
 
 def render(logger, payload):
@@ -11,7 +11,7 @@ def render(logger, payload):
 
     match action:
         case "assigned":
-            return dedent(
+            return cleandoc(
                 f"""\
                 {user} assigned this issue to:
                 {[a['login'] for a in payload['assignees']]}.
@@ -28,7 +28,7 @@ def render(logger, payload):
             milestone = issue["milestone"]
             link = f"[{milestone['title']}]({milestone['html_url']})"
 
-            return dedent(
+            return cleandoc(
                 f"""\
                 {user} removed this issue from the milestone {link}.
                 """
@@ -40,28 +40,27 @@ def render(logger, payload):
             if "body" in changes:
                 old = changes["body"]["from"]
                 new = issue["body"]
-                diff = "".join(unified_diff(old, new))
 
-                return dedent(
-                    f"""{user} changed the body of this issue
-                    ```patch
-                    {diff}
-                    ```
-                    """
+                return "".join(
+                    [
+                        f"{user} changed the body of this issue",
+                        "```patch",
+                        unified_diff(old, new),
+                        "```",
+                    ]
                 )
 
             elif "title" in changes:
                 old = changes["title"]["from"]
                 new = issue["title"]
-                diff = "".join(unified_diff(old, new))
 
-                return dedent(
-                    f"""\
-                    {user} changed the title of this issue
-                    ```patch
-                    {diff}
-                    ```
-                    """
+                return "".join(
+                    [
+                        f"{user} changed the title of this issue",
+                        "```patch",
+                        unified_diff(old, new),
+                        "```",
+                    ]
                 )
 
             return None
@@ -76,14 +75,14 @@ def render(logger, payload):
             milestone = issue["milestone"]
             link = f"[{milestone['title']}]({milestone['html_url']})"
 
-            return dedent(
+            return cleandoc(
                 f"""\
                 {user} added this issue to the milestone {link}.
                 """
             )
 
         case "opened":
-            return dedent(
+            return cleandoc(
                 f"""\
                 {user} opened issue [{issue['id']}]({issue['html_url']}).
                 {issue['title']}
