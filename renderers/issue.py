@@ -41,7 +41,7 @@ def render(logger, payload):
                 old = changes["body"]["from"]
                 new = issue["body"]
 
-                return "".join(
+                return "\n".join(
                     [
                         f"{user} changed the body of this issue",
                         "```patch",
@@ -54,7 +54,7 @@ def render(logger, payload):
                 old = changes["title"]["from"]
                 new = issue["title"]
 
-                return "".join(
+                return "\n".join(
                     [
                         f"{user} changed the title of this issue",
                         "```patch",
