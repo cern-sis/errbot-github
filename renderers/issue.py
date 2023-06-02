@@ -38,27 +38,27 @@ def render(logger, payload):
             changes = payload["changes"]
 
             if "body" in changes:
-                old = changes["body"]["from"]
-                new = issue["body"]
+                old = changes["body"]["from"].split("\n")
+                new = issue["body"].split("\n")
 
                 return "\n".join(
                     [
                         f"{user} changed the body of this issue",
                         "```diff",
-                        "".join(unified_diff([old], [new])),
+                        "".join(unified_diff(old, new)),
                         "```",
                     ]
                 )
 
             elif "title" in changes:
-                old = changes["title"]["from"]
-                new = issue["title"]
+                old = changes["title"]["from"].split("\n")
+                new = issue["title"].split("\n")
 
                 return "\n".join(
                     [
                         f"{user} changed the title of this issue",
                         "```diff",
-                        "".join(unified_diff([old], [new])),
+                        "".join(unified_diff(old, new)),
                         "```",
                     ]
                 )
