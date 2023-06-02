@@ -45,7 +45,7 @@ def render(logger, payload):
                     [
                         f"{user} changed the body of this issue",
                         "```patch",
-                        unified_diff(old, new),
+                        *unified_diff(old, new),
                         "```",
                     ]
                 )
@@ -58,7 +58,7 @@ def render(logger, payload):
                     [
                         f"{user} changed the title of this issue",
                         "```patch",
-                        unified_diff(old, new),
+                        *unified_diff(old, new),
                         "```",
                     ]
                 )
