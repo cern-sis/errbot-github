@@ -26,10 +26,11 @@ def render(logger, payload):
         case "edited":
             old = payload["changes"]["body"]["from"].split("\n")
             new = comment["body"].split("\n")
+            diff = "\n".join(unified_diff(old, new, lineterm=""))
 
             return "\n".join(
                 [
                     f":pencil: {user} edited a comment:",
-                    codeblock(*unified_diff(old, new, lineterm=""), "quote"),
+                    codeblock(diff, "quote"),
                 ]
             )
