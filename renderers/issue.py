@@ -1,6 +1,8 @@
 from difflib import unified_diff
 from inspect import cleandoc
 
+from .markdown import codeblock
+
 
 def render(logger, payload):
     user = payload["sender"]["login"]
@@ -40,26 +42,24 @@ def render(logger, payload):
             if "body" in changes:
                 old = changes["body"]["from"].split("\n")
                 new = issue["body"].split("\n")
+                diff = (unified_diff(old, new, lineterm=""),)
 
                 return "\n".join(
                     [
                         f"{user} changed the body of this issue",
-                        "```diff",
-                        *unified_diff(old, new, lineterm=""),
-                        "```",
+                        codeblock(diff, "diff"),
                     ]
                 )
 
             elif "title" in changes:
                 old = changes["title"]["from"].split("\n")
                 new = issue["title"].split("\n")
+                diff = (unified_diff(old, new, lineterm=""),)
 
                 return "\n".join(
                     [
                         f"{user} changed the title of this issue",
-                        "```diff",
-                        *unified_diff(old, new, lineterm=""),
-                        "```",
+                        codeblock(diff, "diff"),
                     ]
                 )
 

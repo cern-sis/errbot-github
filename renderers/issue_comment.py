@@ -31,6 +31,6 @@ def render(logger, payload):
             return "\n".join(
                 [
                     f":pencil: {user} edited a comment:",
-                    codeblock(diff, "quote"),
+                    codeblock(diff, "diff"),
                 ]
             )
