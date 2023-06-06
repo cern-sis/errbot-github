@@ -1,7 +1,6 @@
 from difflib import unified_diff
-from inspect import cleandoc
 
-from .markdown import codeblock
+from .markdown import diffblock, lines, link
 
 
 def render(logger, payload):
@@ -13,11 +12,9 @@ def render(logger, payload):
 
     match action:
         case "assigned":
-            return cleandoc(
-                f"""\
-                {user} assigned this issue to:
-                {[a['login'] for a in payload['assignees']]}.
-                """
+            return lines(
+                f"{user} assigned this issue to:",
+                *[a["login"] for a in payload["assignees"]],
             )
 
         case "closed":
@@ -28,13 +25,9 @@ def render(logger, payload):
 
         case "demilestoned":
             milestone = issue["milestone"]
-            link = f"[{milestone['title']}]({milestone['html_url']})"
+            ln = link(milestone["title"], milestone["html_url"])
 
-            return cleandoc(
-                f"""\
-                {user} removed this issue from the milestone {link}.
-                """
-            )
+            return f"{user} removed this issue from the milestone {ln}."
 
         case "edited":
             changes = payload["changes"]
@@ -42,25 +35,23 @@ def render(logger, payload):
             if "body" in changes:
                 old = changes["body"]["from"].split("\n")
                 new = issue["body"].split("\n")
-                diff = (unified_diff(old, new, lineterm=""),)
 
-                return "\n".join(
-                    [
-                        f"{user} changed the body of this issue",
-                        codeblock(diff, "diff"),
-                    ]
+                return lines(
+                    f"{user} changed the body of this issue",
+                    diffblock(
+                        *unified_diff(old, new, lineterm=""),
+                    ),
                 )
 
             elif "title" in changes:
                 old = changes["title"]["from"].split("\n")
                 new = issue["title"].split("\n")
-                diff = (unified_diff(old, new, lineterm=""),)
 
-                return "\n".join(
-                    [
-                        f"{user} changed the title of this issue",
-                        codeblock(diff, "diff"),
-                    ]
+                return lines(
+                    f"{user} changed the title of this issue",
+                    diffblock(
+                        *unified_diff(old, new, lineterm=""),
+                    ),
                 )
 
             return None
@@ -73,21 +64,23 @@ def render(logger, payload):
 
         case "milestoned":
             milestone = issue["milestone"]
-            link = f"[{milestone['title']}]({milestone['html_url']})"
-
-            return cleandoc(
-                f"""\
-                {user} added this issue to the milestone {link}.
-                """
+            ln = link(
+                milestone["title"],
+                milestone["html_url"],
             )
 
+            return f"{user} added this issue to the milestone {ln}."
+
         case "opened":
-            return cleandoc(
-                f"""\
-                {user} opened issue [{issue['id']}]({issue['html_url']}).
-                {issue['title']}
-                {issue['body']}
-                """
+            ln = link(
+                issue["id"],
+                issue["html_url"],
+            )
+
+            return lines(
+                f"{user} opened issue {ln}.",
+                f"{issue['title']}",
+                f"{issue['body']}",
             )
 
         case "pinned":

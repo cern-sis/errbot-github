@@ -1,7 +1,6 @@
 from difflib import unified_diff
-from inspect import cleandoc
 
-from .markdown import codeblock
+from .markdown import diffblock, lines, quoteblock
 
 
 def render(logger, payload):
@@ -13,24 +12,19 @@ def render(logger, payload):
 
     match action:
         case "created":
-            return cleandoc(
-                f"""\
-                :pen: {user} [commented]({comment["html_url"]}):
-                {codeblock(comment["body"], "quote")}
-                """
+            return lines(
+                f":pen: {user} [commented]({comment['html_url']}):",
+                quoteblock(comment["body"]),
             )
 
         case "deleted":
-            return f" :wastebasket: {user} deleted a comment."
+            return f":wastebasket: {user} deleted a comment."
 
         case "edited":
             old = payload["changes"]["body"]["from"].split("\n")
             new = comment["body"].split("\n")
-            diff = "\n".join(unified_diff(old, new, lineterm=""))
 
-            return "\n".join(
-                [
-                    f":pencil: {user} edited a comment:",
-                    codeblock(diff, "diff"),
-                ]
+            return lines(
+                f":pencil: {user} edited a comment:",
+                diffblock(*unified_diff(old, new, lineterm="")),
             )
