@@ -4,7 +4,7 @@ version = "1.0.0"
 description = ""
 authors = ["cern-sis-ts"]
 readme = "README.md"
-packages = [{include = "errbot_github"}]
+packages = [{include = "renderers"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
