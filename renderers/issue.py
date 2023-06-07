@@ -14,7 +14,7 @@ def render(logger, payload):
         case "assigned":
             return lines(
                 f"{user} assigned this issue to:",
-                *[a["login"] for a in payload["assignees"]],
+                *[a["login"] for a in issue["assignees"]],
             )
 
         case "closed":
@@ -24,7 +24,7 @@ def render(logger, payload):
             return f"Deleted by {user}."
 
         case "demilestoned":
-            milestone = issue["milestone"]
+            milestone = payload["milestone"]
             ln = link(milestone["title"], milestone["html_url"])
 
             return f"{user} removed this issue from the milestone {ln}."
