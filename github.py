@@ -106,9 +106,7 @@ class Github(BotPlugin):
             return None
 
     def send_notification(self, request, stream, topic):
-        headers = {k: v for k, v in request.headers.items() if k.startswith("X-Github")}
-        headers["Content-Type"] = "application/json"
-        event = headers["X-Github-Event"]
+        event = request.headers["X-Github-Event"]
         payload = request.json
 
         match render(self.log, event, payload):
@@ -118,6 +116,10 @@ class Github(BotPlugin):
 
             case None:
                 # Use the default GH integration from Zulip
+                headers = {
+                    k: v for k, v in request.headers.items() if k.startswith("X-Github")
+                }
+                headers["Content-Type"] = "application/json"
                 params = {
                     "api_key": os.environ["BOT_GITHUB_KEY"],
                     "stream": stream,
