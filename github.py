@@ -17,6 +17,17 @@ CONFIG_TEMPLATE = {
             "issues",
         ],
     },
+    "STREAMS": {
+        "inspirehep": {"*": "inspire"},
+        "cernanalysispreservation": {"*", "cap"},
+        "cern-sis": {
+            "digitization": "digitization",
+            "cern-academic-training": "cat",
+            "kubernetes": "infrastructure",
+            "workflows": "scoap3",
+            "*": "sis",
+        },
+    },
 }
 
 
@@ -33,44 +44,42 @@ class Github(BotPlugin):
         super(Github, self).configure(config)
 
     def get_user(self, gh):
-        gh_u = ""
         client = self._bot.client()
-        result = client.get_members()
-        result = client.get_members({"client_gravatar": False})
-        result = client.get_members({"include_custom_profile_fields": True})
+        result = client.get_members(
+            {
+                "client_gravatar": False,
+                "include_custom_profile_fields": True,
+            }
+        )
 
         if result["result"] == "success":
-            members = result["members"]
+            return self.get_github_id(result["members"], gh)
 
-            for member in members:
-                if "profile_data" in member:
-                    if "3959" in member["profile_data"]:
-                        if member["profile_data"]["3959"]["value"] == gh:
-                            gh_u = member["full_name"]
-        return gh_u
+    @staticmethod
+    def get_github_id(members, gh):
+        return next(
+            [
+                member["full_name"]
+                for member in members
+                if member.get("profile_data", {}).get("3959", {}).get("value") == gh
+            ],
+            None,
+        )
 
     def stream(self, org, repo):
         ignored_repos = self.config["IGNORED_REPOS"]
+        streams = self.config["STREAM"]
+
         if repo in ignored_repos.get(org, []):
             return None
 
-        match (org, repo):
-            case ("inspirehep", _):
-                return "inspire"
-            case ("cernanalysispreservation", _):
-                return "cap"
-            case ("cern-sis", "digitization"):
-                return "digitization"
-            case ("cern-sis", "cern-academic-training"):
-                return "cat"
-            case ("cern-sis", "kubernetes"):
-                return "infrastructure"
-            case ("cern-sis", "workflows"):
-                return "scoap3"
-            case ("cern-sis", _):
-                return "sis"
-            case (org, _):
-                return org
+        if org not in streams:
+            return org
+
+        if repo not in streams[org]:
+            return streams[org]["*"]
+
+        return streams[org][repo]
 
     @staticmethod
     def topic(repo, ref):
