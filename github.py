@@ -68,7 +68,7 @@ class Github(BotPlugin):
 
     def stream(self, org, repo):
         ignored_repos = self.config["IGNORED_REPOS"]
-        streams = self.config["STREAM"]
+        streams = self.config["STREAMS"]
 
         if repo in ignored_repos.get(org, []):
             return None
