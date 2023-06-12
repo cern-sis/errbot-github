@@ -3,7 +3,7 @@ import logging
 
 import pytest
 
-from renderers.issue import render
+from renderers import render
 
 extra_plugin_dir = "."
 
@@ -84,4 +84,4 @@ def test_render(action, expected, request):
     file_path = rootdir / f"tests/data/issue.{action}.json"
 
     with open(file_path) as file:
-        assert render(logging, json.load(file)) == expected
+        assert render(logging, "issue", json.load(file)) == expected

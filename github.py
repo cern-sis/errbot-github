@@ -108,8 +108,10 @@ class Github(BotPlugin):
     def send_notification(self, request, stream, topic):
         headers = {k: v for k, v in request.headers.items() if k.startswith("X-Github")}
         headers["Content-Type"] = "application/json"
+        event = headers["X-Github-Event"]
+        payload = request.json
 
-        match render(self.log, request):
+        match render(self.log, event, payload):
             case False:
                 # Dropping notification for this event
                 self.log.info("Dropping Github webhook event")
