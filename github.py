@@ -28,6 +28,11 @@ CONFIG_TEMPLATE = {
             "*": "sis",
         },
     },
+    "IGNORED_SENDERS": {
+        "codecov-commenter": {
+            "scoap3": "*",
+        },
+    },
 }
 
 
@@ -105,9 +110,21 @@ class Github(BotPlugin):
         else:
             return None
 
+    def filter_sender(self, stream, topic, payload):
+        user = payload["sender"]["login"]
+        filtered_topics = self.config["IGNORED_SENDERS"].get(user, {}).get(stream, {})
+
+        if filtered_topics == "*" or topic in filtered_topics:
+            return True
+        else:
+            return False
+
     def send_notification(self, request, stream, topic):
         event = request.headers["X-Github-Event"]
         payload = request.json
+
+        if self.filter_sender(stream, topic, payload):
+            return
 
         match render(self.log, event, payload):
             case False:
