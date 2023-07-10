@@ -129,10 +129,13 @@ class Github(BotPlugin):
         match render(self.log, event, payload):
             case False:
                 # Dropping notification for this event
-                self.log.info("Dropping Github webhook event")
+                self.log.info("Event dropped by the renderer.")
 
             case None:
                 # Use the default GH integration from Zulip
+                self.log.info(
+                    "Forwarding the event to the built-in Github integration."
+                )
                 headers = {
                     k: v for k, v in request.headers.items() if k.startswith("X-Github")
                 }
@@ -148,11 +151,9 @@ class Github(BotPlugin):
                     headers=headers,
                     data=request.get_data(),
                 )
-                self.log.info(
-                    "Forwarding Github webhook event to the github integration"
-                )
 
             case content:
+                self.log.info("Sending rendered event to Zulip.")
                 # Use our own template for this event
                 client = self._bot.client
                 client.send_message(
@@ -163,15 +164,16 @@ class Github(BotPlugin):
                         "content": content,
                     }
                 )
-                self.log.info("Sending Github webhook event notification")
 
     @webhook("/github", raw=True)
     def github(self, request):
         payload = request.json
         event_header = request.headers["X-Github-Event"]
+        self.log.info(f"Received an event of type {event_header}.")
 
         stream, topic = self.room(payload, event_header)
         if stream is None:
+            self.log.info("Didn't find any corresponding stream for this event.")
             return None
 
         if payload["action"] == "reopened":
