@@ -37,8 +37,7 @@ CONFIG_TEMPLATE = {
 
 
 class Github(BotPlugin):
-    @staticmethod
-    def get_configuration_template():
+    def get_configuration_template(self):
         return CONFIG_TEMPLATE
 
     def configure(self, configuration):
@@ -112,12 +111,16 @@ class Github(BotPlugin):
 
     def filter_sender(self, stream, topic, payload):
         user = payload["sender"]["login"]
-        filtered_topics = self.config["IGNORED_SENDERS"].get(user, {}).get(stream, {})
 
+        filtered_streams = self.config["IGNORED_SENDERS"].get(user, {})
+        if filtered_streams == "*":
+            return True
+
+        filtered_topics = filtered_streams.get(stream, [])
         if filtered_topics == "*" or topic in filtered_topics:
             return True
-        else:
-            return False
+
+        return False
 
     def send_notification(self, request, stream, topic):
         event = request.headers["X-Github-Event"]

@@ -3,8 +3,12 @@ name = "errbot-github"
 version = "1.0.0"
 description = ""
 authors = ["cern-sis-ts"]
+repository = "https://github.com/cern-sis/errbot-github"
 readme = "README.md"
-packages = [{include = "renderers"}]
+include = ["github.py"]
+packages = [
+  {include = "renderers"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -17,3 +21,6 @@ pytest = "^7.3.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = "."
