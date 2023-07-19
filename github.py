@@ -32,6 +32,9 @@ CONFIG_TEMPLATE = {
         "codecov-commenter": {
             "scoap3": "*",
         },
+        "cypress[bot]": {
+            "inspire": "*",
+        },
     },
 }
 
